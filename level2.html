@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 2: 远古宫殿历史大冒险</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0a0a0a; 
+            font-family: 'Times New Roman', serif;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none; 
+        }
+        
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #d4c4a8;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        #progress-ui {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            color: #d4af37;
+            text-shadow: 1px 1px 2px black;
+            pointer-events: none;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            z-index: 10;
+            font-weight: bold;
+        }
+
+        #hearts-ui {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .overlay {
+            display: none; 
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1e1e28, #2a2a38);
+            border: 2px solid #d4af37; 
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            color: #f4e8c1;
+            text-align: center;
+            animation: popup 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes popup {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            color: #d4af37;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #d4af37;
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+        }
+
+        .quiz-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #7a6a57;
+            color: #f4e8c1;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .quiz-input:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #7a6a57;
+            color: #f4e8c1;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .action-btn:hover, .action-btn:active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .quiz-feedback {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+        
+        .blood-text { color: #f44336; font-size: 1.5rem; text-shadow: 0 0 10px #f44336; }
+
+        .rank-display {
+            font-size: 1.4rem;
+            color: #fff;
+            text-shadow: 0 0 15px #d4af37;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid #5c4033;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            color: #d4af37;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .analysis-box {
+            background: rgba(0,0,0,0.3);
+            border-left: 3px solid #4CAF50;
+            padding: 10px;
+            text-align: left;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .analysis-box strong { color: #f4e8c1; display: block; margin-bottom: 3px; }
+        
+        .whatsapp-btn {
+            background: rgba(37, 211, 102, 0.1);
+            border-color: #25D366;
+            color: #25D366;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .whatsapp-btn:hover {
+            background: rgba(37, 211, 102, 0.3);
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">探索远古宫殿遗迹</div>
+    <div id="progress-ui">已解除的古老结界: 0 / 5</div>
+    <div id="hearts-ui">❤️❤️❤️</div>
+    
+    <div id="quiz-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-title">✨ 智慧结界 ✨</div>
+            <div class="modal-text" id="q-text"></div>
+            <div id="q-options"></div>
+            <div class="quiz-feedback" id="q-feedback"></div>
+        </div>
+    </div>
+
+    <div id="victory-overlay" class="overlay">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-title">🌟 冒险完成 🌟</div>
+            
+            <div class="rank-display" id="v-rank">传奇守护者</div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">识别要点<span class="stat-value" id="v-points">0</span></div>
+                <div class="stat-box">清除结界<span class="stat-value" id="v-barriers">0</span></div>
+                <div class="stat-box">收集文物<span class="stat-value" id="v-relics">0</span></div>
+                <div class="stat-box">避开灵体<span class="stat-value" id="v-spirits">0</span></div>
+            </div>
+
+            <div class="analysis-box" style="border-left-color: #4CAF50;">
+                <strong>💡 优势分析:</strong>
+                <span id="v-strength">正在加载...</span>
+            </div>
+
+            <div class="analysis-box" style="border-left-color: #ff9800;">
+                <strong>📈 改进建议:</strong>
+                <span id="v-improvement">正在加载...</span>
+            </div>
+
+            <div class="analysis-box" style="border-left-color: #03A9F4;">
+                <strong>🧠 学习表现:</strong>
+                <span id="v-style">正在加载...</span>
+            </div>
+
+            <div style="margin-top: 25px; border-top: 1px solid #5c4033; padding-top: 20px;">
+                <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">继续你的学习之旅</div>
+                <a href="https://wa.me/60105801561?text=Hi,%20I%20completed%20the%20Ancient%20Palace%20educational%20adventure%20and%20would%20like%20to%20receive%20my%20learning%20analysis." target="_blank" class="action-btn whatsapp-btn">
+                    💬 联系学习顾问
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameover-overlay" class="overlay">
+        <div class="modal">
+            <div class="modal-title blood-text">☠️ 探索失败 (Game Over) ☠️</div>
+            <div class="modal-text">你被黑暗灵体吞噬了...<br>(You were consumed by the dark spirits...)</div>
+            <button class="action-btn" onclick="location.reload()">重新开始</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="maze-ambient.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="barrierSound">
+        <source src="barrier.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="successSound">
+        <source src="level2-success.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="ghostSound">
+        <source src="ghost.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const bgMusic = document.getElementById("bgMusic");
+        const barrierSound = document.getElementById("barrierSound");
+        const successSound = document.getElementById("successSound");
+        const ghostSound = document.getElementById("ghostSound");
+
+document.addEventListener("click", () => {
+    if (bgMusic.paused) {
+        bgMusic.volume = 0.2;
+        bgMusic.play();
+    }
+}, { once: true });
+
+        const ctx = canvas.getContext('2d');
+
+        let CAMERA_ZOOM = 1.5;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            CAMERA_ZOOM = window.innerWidth < 600 ? 1.8 : 1.3; 
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let gameState = 'PLAYING';
+        let fadeAlpha = 0;
+
+        // --- OFFICIAL BAHASA MELAYU SEJARAH QUESTIONS PATCH ---
+        const barrierData = {
+            "3-3": { 
+                q: "QUESTION 1\nJelaskan tindakan komunis mencetuskan huru-hara semasa Darurat. [6 markah]", 
+                keys: [
+                    "serangan terhadap balai polis", "pasukan keselamatan", "membunuh pekerja ladang", 
+                    "pegawai kerajaan", "memusnahkan landasan kereta api", "kemudahan awam", 
+                    "membakar ladang getah", "kilang", "mengugut penduduk kampung", 
+                    "membantu komunis", "menyebarkan ideologi komunis", "melemahkan pentadbiran British"
+                ] 
+            },
+            "7-5": { 
+                q: "QUESTION 2\nKerajaan British telah melakukan pelbagai usaha bagi menangani ancaman komunis. Huraikan pelaksanaan Rancangan Briggs. [4 markah]", 
+                keys: [
+                    "kawasan pinggir hutan", "dipindahkan ke Kampung Baru", "kemudahan asas", 
+                    "sekolah dan klinik", "memutuskan hubungan", "komunis dengan penduduk", 
+                    "mengawal keselamatan", "bekalan makanan"
+                ] 
+            },
+            "9-9": { 
+                q: "QUESTION 3\nJawatankuasa Hubungan Antara Kaum (CLC) ditubuhkan pada Januari 1949.\nJelaskan objektif penubuhannya. [4 markah]", 
+                keys: [
+                    "perpaduan kaum", "kerjasama antara kaum", "Tanah Melayu", 
+                    "persefahaman", "toleransi kaum", "mencapai kemerdekaan negara"
+                ] 
+            },
+            "3-15": { 
+                q: "QUESTION 4\nJelaskan latar belakang Sistem Ahli [4 markah]", 
+                keys: [
+                    "British pada tahun 1951", "melatih penduduk tempatan", 
+                    "mentadbir negara", "pemimpin pelbagai kaum", "pembentukan kabinet selepas merdeka"
+                ] 
+            },
+            "11-15": { 
+                q: "QUESTION 5\nPada pendapat anda, apakah rumusan yang boleh dibuat tentang konsep kedaulatan? [4 markah]", 
+                keys: [
+                    "bebas daripada campur tangan luar", "keamanan dan kestabilan negara", 
+                    "mentadbir dengan teratur", "berdasarkan undang-undang", 
+                    "rakyat perlu bersatu padu", "mempertahankan kedaulatan negara", "kesejahteraan bersama"
+                ] 
+            }
+        };
+
+        const TOTAL_BARRIERS = Object.keys(barrierData).length;
+        
+        // Dynamically compute absolute total keywords to prevent hardcoding index mismatch errors
+        let totalPointsPossible = 0;
+        Object.values(barrierData).forEach(b => totalPointsPossible += b.keys.length);
+
+        const gameStats = {
+            pointsIdentified: 0,
+            barriersCleared: 0,
+            timesHit: 0,
+            totalPossiblePoints: totalPointsPossible
+        };
+
+        const mapLayout = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], 
+            [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2, 1, 0, 1], 
+            [1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1], 
+            [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 1], 
+            [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1], 
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 1], 
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1], 
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
+            [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1], 
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        const TILE_SIZE = 80; 
+
+        const player = {
+            x: TILE_SIZE * 1.5,      
+            y: TILE_SIZE * 1.5,      
+            visualX: TILE_SIZE * 1.5,
+            visualY: TILE_SIZE * 1.5,
+            angle: 0,                
+            targetAngle: 0,          
+            size: 30,           
+            speed: 4,           
+            targetX: TILE_SIZE * 1.5,
+            targetY: TILE_SIZE * 1.5,
+            isMoving: false,
+            hp: 3,
+            checkpoint: { x: TILE_SIZE * 1.5, y: TILE_SIZE * 1.5 },
+            isInvulnerable: false
+        };
+
+        const enemies = [
+            { x: TILE_SIZE * 6.5, y: TILE_SIZE * 1.5, size: 28, vx: 2, vy: 0 }, 
+            { x: TILE_SIZE * 15.5, y: TILE_SIZE * 5.5, size: 28, vx: 0, vy: 2 }, 
+            { x: TILE_SIZE * 7.5, y: TILE_SIZE * 9.5, size: 28, vx: -2, vy: 0 }, 
+            { x: TILE_SIZE * 4.5, y: TILE_SIZE * 13.5, size: 28, vx: 2, vy: 0 }  
+        ];
+
+        let camera = { x: 0, y: 0 };
+        let redFlashFrames = 0;
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (gameState !== 'PLAYING') return; 
+            
+            const rect = canvas.getBoundingClientRect();
+            const tapX = (e.clientX - rect.left) / CAMERA_ZOOM;
+            const tapY = (e.clientY - rect.top) / CAMERA_ZOOM;
+
+            player.targetX = tapX + camera.x;
+            player.targetY = tapY + camera.y;
+            player.isMoving = true;
+        });
+
+        function checkCollision(x, y, entitySize) {
+            const EPSILON = 0.5; 
+            const left = x - entitySize / 2 + EPSILON;
+            const right = x + entitySize / 2 - EPSILON;
+            const top = y - entitySize / 2 + EPSILON;
+            const bottom = y + entitySize / 2 - EPSILON;
+
+            const startCol = Math.floor(left / TILE_SIZE);
+            const endCol = Math.floor(right / TILE_SIZE);
+            const startRow = Math.floor(top / TILE_SIZE);
+            const endRow = Math.floor(bottom / TILE_SIZE);
+
+            for (let row = startRow; row <= endRow; row++) {
+                for (let col = startCol; col <= endCol; col++) {
+                    if (row >= 0 && row < mapLayout.length && col >= 0 && col < mapLayout[0].length) {
+                        const tile = mapLayout[row][col];
+                        if (tile === 1) return { hit: true, type: 'wall' };
+                        if (tile === 2) return { hit: true, type: 'barrier', row, col };
+                    } else {
+                        return { hit: true, type: 'wall' }; 
+                    }
+                }
+            }
+            return { hit: false };
+        }
+
+        function takeDamage() {
+            if (player.isInvulnerable || gameState !== 'PLAYING') return;
+            ghostSound.currentTime = 0;
+            ghostSound.play();
+
+            player.hp--;
+            gameStats.timesHit++; 
+            updateHeartsUI();
+            
+            if (player.hp <= 0) {
+                gameState = 'GAMEOVER';
+                document.getElementById('gameover-overlay').style.display = 'flex';
+            } else {
+                redFlashFrames = 15;
+                player.x = player.checkpoint.x;
+                player.y = player.checkpoint.y;
+                player.visualX = player.x;
+                player.visualY = player.y;
+                player.targetX = player.x;
+                player.targetY = player.y;
+                player.isMoving = false;
+                
+                player.isInvulnerable = true;
+                setTimeout(() => { player.isInvulnerable = false; }, 1500);
+            }
+        }
+
+        function updateHeartsUI() {
+            let hearts = "";
+            for(let i=0; i<3; i++) hearts += i < player.hp ? "❤️" : "🖤";
+            document.getElementById('hearts-ui').innerText = hearts;
+        }
+
+        function triggerQuiz(row, col) {
+            if (gameState === 'QUIZ') return;
+            
+            gameState = 'QUIZ';
+            barrierSound.currentTime = 0;
+            barrierSound.play();
+
+            player.isMoving = false; 
+            
+            const data = barrierData[`${row}-${col}`];
+            if(!data) { unlockBarrier(row, col); return; }
+
+            document.getElementById('quiz-overlay').style.display = 'flex';
+            document.getElementById('q-text').innerText = data.q;
+            document.getElementById('q-feedback').innerHTML = ""; 
+            
+            const optsContainer = document.getElementById('q-options');
+            optsContainer.innerHTML = `
+                <input type="text" id="q-input" class="quiz-input" placeholder="输入你的答案..." autocomplete="off">
+                <div class="btn-group" id="q-btn-group">
+                    <button class="action-btn" id="q-submit">提交答案</button>
+                    <button class="action-btn" id="q-cancel" style="background: rgba(244, 67, 54, 0.1); border-color: #f44336;">离开</button>
+                </div>
+            `;
+            
+            const inputField = document.getElementById('q-input');
+            const submitBtn = document.getElementById('q-submit');
+            const cancelBtn = document.getElementById('q-cancel');
+            const btnGroup = document.getElementById('q-btn-group');
+
+            const checkAnswer = () => {
+                const inputVal = inputField.value.trim();
+                if(!inputVal) return; 
+
+                inputField.style.display = 'none';
+                btnGroup.style.display = 'none';
+
+                const feedback = document.getElementById('q-feedback');
+                
+                // Flexible text keyword matching
+                const matchedKeys = data.keys.filter(key => inputVal.toLowerCase().includes(key.toLowerCase()));
+                const score = matchedKeys.length;
+                const total = data.keys.length;
+
+                gameStats.pointsIdentified += score;
+                gameStats.barriersCleared++;
+
+                let feedbackHTML = `<div style="text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #7a6a57;">`;
+                feedbackHTML += `<span style="color: #4CAF50;">✔ 已检测到的历史得分点:</span><br>`;
+                
+                if (score > 0) {
+                    matchedKeys.forEach(k => { feedbackHTML += `<span style="color: #d4af37; margin-left: 10px;">- ${k}</span><br>`; });
+                } else {
+                    feedbackHTML += `<span style="color: #999; margin-left: 10px;">- 未检测到任何匹配项</span><br>`;
+                }
+                
+                feedbackHTML += `<br><span style="color: #f4e8c1;">得分:</span><br>`;
+                feedbackHTML += `<strong style="color: #d4af37; font-size: 1.2rem;">${score} / ${total} 个要点已识别</strong><br><br>`;
+                feedbackHTML += `<span style="color: #4CAF50; font-style: italic;">回答有效，魔法封印正在消散... ✨</span></div>`;
+
+                feedback.innerHTML = feedbackHTML;
+
+                player.checkpoint = { x: player.x, y: player.y };
+                setTimeout(() => unlockBarrier(row, col), 3000); 
+            };
+
+            submitBtn.onclick = checkAnswer;
+            inputField.onkeypress = (e) => { if (e.key === 'Enter') checkAnswer(); };
+
+            cancelBtn.onclick = () => {
+                document.getElementById('quiz-overlay').style.display = 'none';
+                gameState = 'PLAYING';
+                player.targetX = player.x;
+                player.targetY = player.y;
+            };
+
+            setTimeout(() => inputField.focus(), 100);
+        }
+
+       
+        function unlockBarrier(row, col) {
+             successSound.currentTime = 0;
+             successSound.play();
+
+            mapLayout[row][col] = 0; 
+            document.getElementById('quiz-overlay').style.display = 'none';
+            
+            document.getElementById('progress-ui').innerText = `已解除的古老结界: ${gameStats.barriersCleared} / ${TOTAL_BARRIERS}`;
+
+            if (gameStats.barriersCleared >= TOTAL_BARRIERS) {
+                gameState = 'VICTORY_TRANSITION'; 
+                setTimeout(triggerVictory, 1500);
+            } else {
+                gameState = 'PLAYING';
+            }
+        }
+
+        // --- CHINESE SYSTEM REPORT IMPLEMENTATION ---
+        function triggerVictory() {
+            gameState = 'VICTORY';
+            player.isMoving = false;
+
+            const ratio = gameStats.pointsIdentified / gameStats.totalPossiblePoints;
+            let rank, strength, improvement, style;
+
+            if (ratio >= 0.75) {
+                rank = "🏆 传奇守护者";
+                strength = "你对历史概念有深入的理解，并具备极佳的关键词识别能力。";
+                improvement = "你可以通过探索更深层的历史背景并将不同的时代联系起来以获得提升。";
+                style = "卓越的关键词识别能力";
+            } else if (ratio >= 0.5) {
+                rank = "🏅 远古学者";
+                strength = "对核心历史事实和区域事件有很好的记忆力。";
+                improvement = "你可以通过提供更详细的解释和更有力的支持论点来改进。";
+                style = "扎的历史记忆力";
+            } else if (ratio >= 0.25) {
+                rank = "🧭 知识追寻者";
+                strength = "很好地掌握了宏观历史主题和基本叙事。";
+                improvement = "请专注于记忆特定关键词、准确的专业术语和地理位置。";
+                style = "良好的概念认力";
+            } else {
+                rank = "🚶 初级探险家";
+                strength = "展现了探索和接触新历史概念的意愿。";
+                improvement = "请复习核心材料，并练习从文本中提取核心关键词。";
+                style = "需加强答题结构化";
+            }
+
+            document.getElementById('v-rank').innerText = rank;
+            document.getElementById('v-points').innerText = `${gameStats.pointsIdentified} / ${gameStats.totalPossiblePoints}`;
+            document.getElementById('v-barriers').innerText = `${gameStats.barriersCleared} / ${TOTAL_BARRIERS}`;
+            document.getElementById('v-relics').innerText = Math.floor(gameStats.pointsIdentified * 1.5); 
+            document.getElementById('v-spirits').innerText = Math.max(0, 12 - gameStats.timesHit);
+
+            document.getElementById('v-strength').innerText = strength;
+            document.getElementById('v-improvement').innerText = improvement;
+            document.getElementById('v-style').innerText = style;
+
+            document.getElementById('victory-overlay').style.display = 'flex';
+        }
+
+        function update() {
+            if (gameState !== 'PLAYING') return;
+
+            if (player.isMoving) {
+                const dx = player.targetX - player.x;
+                const dy = player.targetY - player.y;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance < player.speed) {
+                    player.x = player.targetX;
+                    player.y = player.targetY;
+                    player.isMoving = false;
+                } else {
+                    const moveX = (dx / distance) * player.speed;
+                    const moveY = (dy / distance) * player.speed;
+
+                    player.targetAngle = Math.atan2(dy, dx);
+
+                    player.x += moveX;
+                    let colX = checkCollision(player.x, player.y, player.size);
+                    if (colX.hit) {
+                        player.x -= moveX; 
+                        if (colX.type === 'barrier') triggerQuiz(colX.row, colX.col);
+                    }
+
+                    player.y += moveY;
+                    let colY = checkCollision(player.x, player.y, player.size);
+                    if (colY.hit) {
+                        player.y -= moveY; 
+                        if (colY.type === 'barrier') triggerQuiz(colY.row, colY.col);
+                    }
+                }
+            }
+
+            let diff = player.targetAngle - player.angle;
+            diff = Math.atan2(Math.sin(diff), Math.cos(diff)); 
+            player.angle += diff * 0.2;
+
+            player.visualX += (player.x - player.visualX) * 0.4;
+            player.visualY += (player.y - player.visualY) * 0.4;
+
+            enemies.forEach(e => {
+                e.x += e.vx;
+                e.y += e.vy;
+                
+                if (checkCollision(e.x, e.y, e.size).hit) {
+                    e.x -= e.vx; e.y -= e.vy;
+                    e.vx = -e.vx; e.vy = -e.vy;
+                }
+
+                if (Math.hypot(player.x - e.x, player.y - e.y) < (player.size/2 + e.size/2)) {
+                    takeDamage();
+                }
+            });
+
+            camera.x = player.visualX - (canvas.width / 2) / CAMERA_ZOOM;
+            camera.y = player.visualY - (canvas.height / 2) / CAMERA_ZOOM;
+        }
+
+        function drawWall(x, y, size, row, col) {
+            ctx.fillStyle = '#2d3336';
+            ctx.fillRect(x, y, size, size);
+            ctx.strokeStyle = '#1a1d1f';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, size, size);
+        }
+
+        function drawFloor(x, y, size, row, col) {
+            ctx.fillStyle = '#b09e86';
+            ctx.fillRect(x, y, size, size);
+            ctx.strokeStyle = '#8f7e69';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x + 2, y + 2, size - 4, size - 4);
+        }
+
+        function drawMagicBarrier(x, y, size) {
+            drawFloor(x, y, size, 0, 0);
+            const pulse = (Math.sin(Date.now() / 300) + 1) / 2; 
+            ctx.fillStyle = `rgba(0, 200, 255, ${0.2 + pulse * 0.2})`;
+            ctx.fillRect(x, y, size, size);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${0.6 + pulse * 0.4})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size * 0.35, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function drawEnemy(x, y, size, angle) {
+            ctx.save();
+            const time = Date.now();
+            const floatOffset = Math.sin(time / 200) * 4;
+            const pulse = (Math.sin(time / 150) + 1) / 2; 
+
+            ctx.translate(x, y);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(0, size/2, size/1.5, size/3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.translate(0, floatOffset);
+            ctx.rotate(angle);
+
+            ctx.shadowColor = '#8a2be2'; 
+            ctx.shadowBlur = 15 + pulse * 10;
+            
+            const tailWobble = Math.sin(time / 80) * (size / 3);
+            ctx.fillStyle = '#1a0b2e'; 
+            ctx.beginPath();
+            ctx.moveTo(size/4, 0); 
+            ctx.quadraticCurveTo(-size/2, size/2 + tailWobble, -size, 0); 
+            ctx.quadraticCurveTo(-size/2, -size/2 + tailWobble, size/4, 0); 
+            ctx.fill();
+
+            ctx.fillStyle = '#2d1445';
+            ctx.beginPath();
+            ctx.arc(size/6, 0, size/2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#00ffff'; 
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 10;
+            
+            ctx.beginPath();
+            ctx.ellipse(size/4, -size/6, size/10, size/15, Math.PI/8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.ellipse(size/4, size/6, size/10, size/15, -Math.PI/8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawExplorer(x, y, size, angle, isMoving) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(0, size/4, size/1.8, size/2.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            let wobble = 0;
+            let handSwing = 0;
+            if (isMoving) {
+                wobble = Math.sin(Date.now() / 60) * 0.15;
+                handSwing = Math.sin(Date.now() / 80) * (size / 4);
+            }
+            
+            ctx.rotate(angle + wobble);
+
+            ctx.fillStyle = '#5c4033';
+            ctx.beginPath();
+            ctx.ellipse(-size/3, 0, size/4, size/2.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#3e2a21';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#2E7D32';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, size/2.2, size/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffcda2';
+            ctx.beginPath();
+            ctx.arc(size/6 + handSwing, -size/1.8, size/6, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(size/6 - handSwing, size/1.8, size/6, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(size/5, 0, size/3, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#d4c4a8';
+            ctx.beginPath();
+            ctx.ellipse(size/6, 0, size/2.2, size/2.5, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#8f7e69';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.ellipse(size/6, 0, size/3.2, size/3.2, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#5c4033';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(size/6, 0, size/3.2, -Math.PI/2, Math.PI/2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.scale(CAMERA_ZOOM, CAMERA_ZOOM);
+            ctx.translate(-camera.x, -camera.y);
+
+            for (let row = 0; row < mapLayout.length; row++) {
+                for (let col = 0; col < mapLayout[row].length; col++) {
+                    const x = col * TILE_SIZE;
+                    const y = row * TILE_SIZE;
+                    const tile = mapLayout[row][col];
+                    if (tile === 1) drawWall(x, y, TILE_SIZE, row, col);
+                    else if (tile === 2) drawMagicBarrier(x, y, TILE_SIZE);
+                    else drawFloor(x, y, TILE_SIZE, row, col);
+                }
+            }
+
+            enemies.forEach(e => {
+                const angle = Math.atan2(e.vy, e.vx);
+                drawEnemy(e.x, e.y, e.size, angle);
+            });
+
+            if (player.isMoving && gameState === 'PLAYING') {
+                const dist = Math.hypot(player.targetX - player.x, player.targetY - player.y);
+                if (dist > 10) {
+                    ctx.beginPath();
+                    ctx.arc(player.targetX, player.targetY, 10, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 220, 100, 0.5)'; 
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            if (!player.isInvulnerable || Math.floor(Date.now() / 100) % 2 === 0) {
+                drawExplorer(player.visualX, player.visualY, player.size, player.angle, player.isMoving);
+            }
+
+            ctx.restore();
+
+            if (redFlashFrames > 0) {
+                ctx.fillStyle = `rgba(255, 0, 0, ${redFlashFrames / 30})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                redFlashFrames--;
+            }
+
+            if (gameState === 'VICTORY_TRANSITION') {
+                fadeAlpha += 0.02;
+                if (fadeAlpha > 1) fadeAlpha = 1;
+                ctx.fillStyle = `rgba(212, 175, 55, ${fadeAlpha})`; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        requestAnimationFrame(loop);
+    </script>
+
+
+
+</body>
+
+</html>

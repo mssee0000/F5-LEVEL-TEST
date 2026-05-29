@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>古老宫殿的过渡长廊</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        :root {
+            --cyan-glow: #00e5ff;
+            --torch-glow: #ff7b00;
+            --stone-dark: #11151c;
+            --stone-light: #2a3441;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        /* Mobile Portrait Container */
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            max-height: 900px;
+            background: linear-gradient(to bottom, #05080f, var(--stone-dark));
+            overflow: hidden;
+            perspective: 800px;
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
+        }
+
+        /* Ambient Environment */
+        #corridor-walls {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, rgba(0,0,0,0.9) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.9) 100%),
+                linear-gradient(0deg, rgba(0,229,255,0.05) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .torch {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(255,123,0,0.6) 0%, rgba(255,42,0,0) 70%);
+            border-radius: 50%;
+            top: 40%;
+            z-index: 2;
+            animation: flicker 2s infinite alternate;
+        }
+        .torch.left { left: -10px; }
+        .torch.right { right: -10px; }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            75% { opacity: 0.9; transform: scale(0.95); }
+        }
+
+        /* Depth Illusion (Pseudo-3D Arches) */
+        .archway {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 260px;
+            height: 400px;
+            margin-left: -130px;
+            margin-top: -200px;
+            border: 25px solid var(--stone-light);
+            border-bottom: none;
+            border-radius: 130px 130px 0 0;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 229, 255, 0.5), 
+                0 0 30px rgba(0, 229, 255, 0.3),
+                inset 0 0 5px #000;
+            opacity: 0;
+            transform: translateZ(-1000px);
+            z-index: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Glowing Runes on Arches */
+        .archway::before {
+            content: "ᚹ ᚺ ᛗ ᚱ ᛟ ᚲ ᚷ ᚹ ᚺ";
+            position: absolute;
+            top: -15px;
+            color: var(--cyan-glow);
+            font-size: 14px;
+            letter-spacing: 15px;
+            text-shadow: 0 0 10px var(--cyan-glow);
+            opacity: 0.8;
+            border-radius: 50%;
+        }
+
+        @keyframes walkForward {
+            0% { transform: translateZ(-800px) scale(0.5); opacity: 0; filter: brightness(0.2); }
+            30% { opacity: 1; filter: brightness(0.8); }
+            80% { opacity: 1; }
+            100% { transform: translateZ(400px) scale(2.5); opacity: 0; filter: brightness(1.5); }
+        }
+
+        /* Fog & Particles */
+        #fog {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0, 229, 255, 0.15), transparent);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            bottom: -10px;
+            width: 3px;
+            height: 3px;
+            background: var(--cyan-glow);
+            border-radius: 50%;
+            box-shadow: 0 0 8px 2px var(--cyan-glow);
+            animation: floatUp linear forwards;
+            z-index: 3;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-400px) scale(0.5); opacity: 0; }
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(17, 21, 28, 0.85);
+            border: 2px solid #334;
+            border-radius: 8px;
+            padding: 10px 15px;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            color: #ccc;
+            font-size: 14px;
+        }
+        .hud-title {
+            font-family: 'Cinzel', serif;
+            color: #e0b0ff;
+            font-size: 16px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px #e0b0ff;
+        }
+        .hud-stats { display: flex; justify-content: space-between; font-weight: bold; }
+        
+        /* Quiz UI */
+        #quiz-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+        }
+        #quiz-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .quiz-panel {
+            width: 90%;
+            background: linear-gradient(135deg, #161f2b, #0d131a);
+            border: 2px solid #2a3d52;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #quiz-layer.active .quiz-panel { transform: scale(1); }
+
+        .question-header {
+            text-align: center;
+            color: var(--cyan-glow);
+            font-family: 'Cinzel', serif;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .question-text {
+            color: #f0f0f0;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: linear-gradient(to right, #1c2836, #243447);
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct {
+            background: linear-gradient(to right, #18452b, #205c39);
+            border-color: #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+            color: #00ff66;
+        }
+        .option-btn.wrong {
+            background: linear-gradient(to right, #451818, #5c2020);
+            border-color: #ff3333;
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+            color: #ffaa99;
+        }
+
+        /* Final Gate Transition */
+        #gate-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+        .gate-door {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%2311151c"/><path d="M50 0v100M0 50h100" stroke="%232a3441" stroke-width="2"/></svg>');
+            background-size: 60px 60px;
+            box-shadow: inset 0 0 50px #000;
+            transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            border: 2px solid #445;
+        }
+        .gate-door.left { left: 0; border-right: 2px solid var(--cyan-glow); transform-origin: left; }
+        .gate-door.right { right: 0; border-left: 2px solid var(--cyan-glow); transform-origin: right; }
+        
+        .gate-door.open.left { transform: translateX(-100%); }
+        .gate-door.open.right { transform: translateX(100%); }
+
+        .gate-center-seal {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(17, 21, 28, 0.9);
+            border: 4px solid var(--cyan-glow);
+            border-radius: 50%;
+            z-index: 31;
+            box-shadow: 0 0 40px var(--cyan-glow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--cyan-glow);
+            font-size: 40px;
+            transition: opacity 1s, transform 1s;
+        }
+        .gate-center-seal.break { opacity: 0; transform: scale(2); }
+
+        .gate-glow-bg {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, #ffffff 0%, var(--cyan-glow) 40%, transparent 100%);
+            opacity: 0;
+            z-index: 29;
+            transition: opacity 2s;
+        }
+
+        /* Final Summary Screen */
+        #summary-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            color: white;
+            padding: 20px;
+        }
+        .summary-box {
+            text-align: center;
+            background: rgba(17, 21, 28, 0.9);
+            border: 2px solid var(--cyan-glow);
+            border-radius: 10px;
+            padding: 30px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(0,229,255,0.3);
+        }
+        .summary-title { font-family: 'Cinzel', serif; color: var(--cyan-glow); font-size: 24px; margin-bottom: 20px; }
+        .summary-stat { font-size: 18px; margin: 10px 0; }
+        .summary-stat span { font-weight: bold; }
+        .summary-stat.correct span { color: #00ff66; }
+        .summary-stat.wrong span { color: #ff3333; }
+        
+        .btn-continue {
+            margin-top: 25px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--cyan-glow), #0088ff);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,229,255,0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Visual Environment -->
+    <div id="corridor-walls"></div>
+    <div class="torch left"></div>
+    <div class="torch right"></div>
+    <div id="fog"></div>
+    <div id="arches-container"></div>
+    <div id="particles-container"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div class="hud-title">远古知识长廊 (知识试炼)</div>
+        <div class="hud-stats">
+            <div>进度: <span id="ui-progress">1/10</span></div>
+            <div>分数: <span id="ui-score">0</span></div>
+        </div>
+    </div>
+
+    <!-- Quiz Overlay -->
+    <div id="quiz-layer">
+        <div class="quiz-panel">
+            <div class="question-header">法阵封印 - <span id="q-number">1</span></div>
+            <div class="question-text" id="q-text"></div>
+            <div class="options-grid" id="q-options">
+                <!-- Options injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Cinematic Gate -->
+    <div id="gate-layer">
+        <div class="gate-glow-bg" id="gate-glow"></div>
+        <div class="gate-door left" id="gate-left"></div>
+        <div class="gate-door right" id="gate-right"></div>
+        <div class="gate-center-seal" id="gate-seal">ᛟ</div>
+    </div>
+
+    <!-- Summary Overlay -->
+    <div id="summary-layer">
+        <div class="summary-box">
+            <div class="summary-title">长廊试炼完成</div>
+            <p>古老宫殿的迷宫大门已为你开启。</p>
+            <div class="summary-stat correct">答对数量: <span id="sum-correct">0</span></div>
+            <div class="summary-stat wrong">答错数量: <span id="sum-wrong">0</span></div>
+            <div class="summary-stat">总分: <span id="sum-score" style="color:var(--cyan-glow)">0</span></div>
+            <button class="btn-continue" onclick="proceedToLevel2()">进入古老宫殿迷宫</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- EDUCATIONAL CONTENT DATA ---
+    const questions = [
+        {
+            q: "Apakah ciri-ciri kedaulatan tradisional?<br><br>I Wujud sejak tamadun awal manusia<br>II Pemerintahan berkuasa mutlak<br>III Dikaitkan dengan hak rakyat dan kerajaan<br>IV Mengamalkan sistem Demokrasi Berparlimen",
+            options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
+            correct: 0 // A
+        },
+        {
+            q: "Kedaulatan undang-undang mewujudkan keamanan, kestabilan, dan kemakmuran di negara kita.<br>Mengapakah halnya demikian?",
+            options: ["A. Tidak meminda perlembagaan", "B. Merujuk Hukum Kanun Melaka", "C. Melaksanakan undang-undang moden", "D. Wujudnya badan kehakiman yang bebas"],
+            correct: 3 // D
+        },
+        {
+            q: "Apakah matlamat utama usaha kerajaan tersebut?",
+            options: ["A. Memajukan bidang ekonomi", "B. Memupuk perpaduan rakyat", "C. Menyekat kedatangan imigran", "D. Menyalurkan bantuan kewangan"],
+            correct: 1 // B
+        },
+        {
+            q: "Apakah kuasa yang terlibat dalam melaksanakan dasar pentadbiran negara?<br><br>I Badan Berkanun<br>II Jemaah Menteri<br>III Kementerian berkaitan<br>IV Pihak berkuasa tempatan",
+            options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
+            correct: 2 // C
+        },
+        {
+            q: "Kedaulatan memberikan hak kepada Malaysia untuk menggubal dasar luar tanpa pengaruh mana-mana pihak.<br>Apakah kepentingan negara menggubal dasar luar?<br><br>I Menjalin persahabatan<br>II Mewujudkan kerjasama<br>III Memperkasa angkatan pertahanan<br>IV Mengukuhkan kedudukan kerajaan",
+            options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
+            correct: 0 // A
+        },
+        {
+            q: "Mengapakah kerajaan mewujudkan dasar pembangunan ekonomi?",
+            options: ["A. Meningkatkan perdagangan", "B. Mengeksploitasi kekayaan negara", "C. Menggalakkan pelaburan syarikat asing", "D. Mengagihkan sumber kekayaan secara adil"],
+            correct: 3 // D
+        },
+        {
+            q: "Maklumat berikut berkaitan dengan langkah dalam mempertahankan kedaulatan negara:<br><i>“Mengekalkan perpaduan kaum”</i><br><br>Antara berikut, yang manakah langkah yang telah dilaksanakan oleh pihak pemerintah Malaysia?<br><br>I Menggubal dasar dan undang-undang<br>II Memastikan agihan sumber kekayaan secara adil<br>III Melaksanakan undang-undang menurut perlembagaan<br>IV Memastikan keberkesanan pelaksanaan dasar pendidikan",
+            options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
+            correct: 0 // A
+        },
+        {
+            q: "Apakah peranan rakyat bagi mengekalkan perpaduan rakyat berbilang bangsa di Malaysia?",
+            options: ["A. Mengamalkan prinsip Rukun Negara", "B. Merangka program ke arah memupuk perpaduan", "C. Menggubal dasar berkaitan perpaduan", "D. Memastikan keberkesanan pelaksanaan dasar"],
+            correct: 0 // A
+        },
+        {
+            q: "Mengapakah sambutan Hari Kebangsaan diadakan dengan meriah?",
+            options: ["A. Menjamin keamanan", "B. Memupuk patriotisme", "C. Mendapat pengiktirafan", "D. Menyemai semangat kerjasama"],
+            correct: 1 // B
+        },
+        {
+            q: "Apakah peranan rakyat dalam mengukuhkan pertahanan negara?",
+            options: ["A. Menggubal undang-undang", "B. Mengadakan perjanjian pertahanan", "C. Memodenkan aset ketenteraan", "D. Menganggotai pasukan keselamatan"],
+            correct: 3 // D
+        }
+    ];
+
+    // --- GAME STATE ---
+    let currentIndex = 0;
+    let totalCorrect = 0;
+    let totalWrong = 0;
+    let totalScore = 0;
+    let walkingInterval = null;
+    let particleInterval = null;
+    let isAnswering = false;
+
+    // --- DOM ELEMENTS ---
+    const archesContainer = document.getElementById('arches-container');
+    const particlesContainer = document.getElementById('particles-container');
+    const quizLayer = document.getElementById('quiz-layer');
+    const uiProgress = document.getElementById('ui-progress');
+    const uiScore = document.getElementById('ui-score');
+    const qNumber = document.getElementById('q-number');
+    const qText = document.getElementById('q-text');
+    const qOptions = document.getElementById('q-options');
+    const corridorWalls = document.getElementById('corridor-walls');
+
+    // --- SYSTEM LOGIC ---
+    function init() {
+        spawnParticles();
+        startWalkingPhase();
+    }
+
+    function spawnParticles() {
+        particleInterval = setInterval(() => {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            particlesContainer.appendChild(particle);
+            setTimeout(() => { particle.remove(); }, 4000);
+        }, 300);
+    }
+
+    function spawnArchway() {
+        const arch = document.createElement('div');
+        arch.className = 'archway';
+        arch.style.animation = 'walkForward 3.5s linear forwards';
+        archesContainer.appendChild(arch);
+        setTimeout(() => { arch.remove(); }, 3400);
+    }
+
+    function startWalkingPhase() {
+        // Darken environment slightly as player goes deeper
+        const depthDarkness = 0.9 - (currentIndex * 0.05);
+        corridorWalls.style.backgroundImage = `
+            linear-gradient(90deg, rgba(0,0,0,${depthDarkness}) 0%, transparent 20%, transparent 80%, rgba(0,0,0,${depthDarkness}) 100%),
+            linear-gradient(0deg, rgba(0,229,255,0.05) 0%, transparent 50%)`;
+
+        spawnArchway();
+        walkingInterval = setInterval(spawnArchway, 1200);
+
+        // Walk for a few seconds, then encounter a trial
+        setTimeout(() => {
+            clearInterval(walkingInterval);
+            triggerTrial();
+        }, 2800);
+    }
+
+    function triggerTrial() {
+        if (currentIndex >= questions.length) {
+            triggerFinalGate();
+            return;
+        }
+
+        isAnswering = false;
+        const currentQ = questions[currentIndex];
+        
+        uiProgress.innerText = (currentIndex + 1) + "/10";
+        qNumber.innerText = (currentIndex + 1);
+        qText.innerHTML = currentQ.q;
+        qOptions.innerHTML = '';
+
+        currentQ.options.forEach((opt, index) => {
+            const btn = document.createElement('div');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt;
+            btn.onclick = () => selectAnswer(index, currentQ.correct, btn);
+            qOptions.appendChild(btn);
+        });
+
+        quizLayer.classList.add('active');
+    }
+
+    function selectAnswer(selectedIndex, correctIndex, btnElement) {
+
+    if (isAnswering) return;
+
+    isAnswering = true;
+
+    const allBtns = qOptions.querySelectorAll('.option-btn');
+
+    if (selectedIndex === correctIndex) {
+
+        btnElement.classList.add('correct');
+
+        clickSound.currentTime = 0;
+        clickSound.play();
+
+        totalCorrect++;
+        totalScore += 10;
+
+    } else {
+
+        btnElement.classList.add('wrong');
+
+        wrongSound.currentTime = 0;
+        wrongSound.play();
+
+        allBtns[correctIndex].classList.add('correct');
+
+        totalWrong++;
+    }
+
+    uiScore.innerText = totalScore;
+
+    setTimeout(() => {
+
+        quizLayer.classList.remove('active');
+
+        currentIndex++;
+
+        setTimeout(() => {
+
+            if(currentIndex < questions.length) {
+                startWalkingPhase();
+            } else {
+                triggerFinalGate();
+            }
+
+        }, 600);
+
+    }, 1500);
+}
+    function triggerFinalGate() {
+        const gateLayer = document.getElementById('gate-layer');
+        const gateLeft = document.getElementById('gate-left');
+        const gateRight = document.getElementById('gate-right');
+        const gateSeal = document.getElementById('gate-seal');
+        const gateGlow = document.getElementById('gate-glow');
+        
+        gateLayer.style.opacity = '1';
+        gateLayer.style.pointerEvents = 'auto';
+        
+        setTimeout(() => {
+            gateSeal.classList.add('break');
+        }, 1000);
+
+        setTimeout(() => {
+            gateSound.currentTime = 0;
+            gateSound.play();
+
+            gateLeft.classList.add('open');
+            gateRight.classList.add('open');
+            gateGlow.style.opacity = '1';
+        }, 2000);
+
+        setTimeout(() => {
+            showSummary();
+        }, 3500);
+    }
+
+    function showSummary() {
+        const summaryLayer = document.getElementById('summary-layer');
+        document.getElementById('sum-correct').innerText = totalCorrect;
+        document.getElementById('sum-wrong').innerText = totalWrong;
+        document.getElementById('sum-score').innerText = totalScore;
+
+        correctSound.currentTime = 0;
+        correctSound.play();
+
+        summaryLayer.style.opacity = '1';
+        summaryLayer.style.pointerEvents = 'auto';
+    }
+
+    function proceedToLevel2() {
+    window.location.href = "level2.html";
+}
+       
+    // Start Stage
+    window.onload = init;
+</script>
+
+<audio id="bgMusic" loop>
+    <source src="transit-ambient.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="clickSound">
+    <source src="click.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="correctSound">
+    <source src="success.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const bgMusic = document.getElementById("bgMusic");
+const clickSound = document.getElementById("clickSound");
+const correctSound = document.getElementById("correctSound");
+
+const wrongSound = new Audio("wrong.mp3");
+const gateSound = new Audio("gate.mp3");
+
+// Start background music after first interaction
+document.addEventListener("click", () => {
+    if (bgMusic.paused) {
+        bgMusic.volume = 0.25;
+        bgMusic.play();
+    }
+}, { once: true });
+
+// Button click sounds
+
+// Correct answer sound
+function playCorrectSound() {
+    correctSound.currentTime = 0;
+    correctSound.play();
+}
+</script>
+</body>
+</html>
