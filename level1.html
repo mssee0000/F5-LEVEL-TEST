@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Sovereign's Relic - 寻宝岛 (Level 1)</title>
+    <style>
+        /* 核心重置 / CORE RESET */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Palatino Linotype', 'Book Antiqua', serif, 'Microsoft YaHei'; }
+        body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+
+        /* 游戏主容器 / GAME CONTAINER (9:16) */
+        #game-container {
+            width: 100%; max-width: 450px; height: 100vh; max-height: 900px;
+            position: relative; overflow: hidden;
+            /* 使用本地背景图 / Using local background asset */
+            background-image: url('treasure-island-background.webp');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 1);
+        }
+
+        /* 环境光影 / ATMOSPHERE */
+        .vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(0,2,10,0.8) 100%);
+            pointer-events: none; z-index: 10;
+        }
+
+        /* 侧边栏 (寻找面板) / FIND PANEL */
+        #find-panel {
+            position: absolute; left: 10px; top: 10%; bottom: 10%; width: 60px;
+            background: rgba(15, 10, 5, 0.85);
+            border: 2px solid #8b6508; border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
+            z-index: 20; padding: 10px 0; backdrop-filter: blur(4px);
+        }
+
+        .ui-item {
+            width: 40px; height: 40px;
+            opacity: 0.3; filter: grayscale(100%);
+            transition: all 0.5s ease;
+            object-fit: contain;
+        }
+        
+        .ui-item.found {
+            opacity: 1; filter: grayscale(0%) drop-shadow(0 0 8px #ffdf70);
+            transform: scale(1.1);
+        }
+
+        /* 隐藏物品 / HIDDEN OBJECTS */
+        #objects-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; }
+
+        .hidden-object {
+            position: absolute; cursor: pointer;
+            width: 50px; height: auto;
+            transition: filter 0.3s, transform 0.2s;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.8));
+        }
+
+        .hidden-object:hover { filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+        .hidden-object:active { transform: scale(0.9); }
+
+        /* 点击发光动画 / DISCOVERY ANIMATION */
+        .object-glow { animation: reveal 1.2s forwards ease-out; pointer-events: none; z-index: 50; }
+        @keyframes reveal {
+            0% { filter: brightness(1.5) drop-shadow(0 0 15px #ffdf70); transform: scale(1); }
+            40% { filter: brightness(2) drop-shadow(0 0 30px #fff); transform: scale(1.5) translateY(-20px); opacity: 1; }
+            100% { transform: scale(0) translateY(-50px); opacity: 0; }
+        }
+
+        /* 答题卷轴 / SCROLL UI */
+        #scroll-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+
+        .scroll-content {
+            width: 85%; padding: 25px;
+            background: linear-gradient(135deg, #e3cfa8 0%, #b89765 100%);
+            border: 3px solid #4a3020; box-shadow: 0 0 30px #000;
+            border-radius: 6px; text-align: center; color: #2d1b11;
+        }
+
+        h3 { font-size: 16px; margin-bottom: 20px; font-weight: bold; line-height: 1.4; }
+
+        .option-btn {
+            display: block; width: 100%; padding: 12px; margin-bottom: 10px;
+            background: rgba(255,255,255,0.4); border: 2px solid #735335; border-radius: 4px;
+            color: #2d1b11; font-size: 14px; font-weight: bold; text-align: left;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct { background: #388e3c; color: #fff; border-color: #1b5e20; }
+        .option-btn.wrong { background: #d32f2f; color: #fff; border-color: #b71c1c; }
+
+        /* 屏幕覆盖 (开始/结束) / SCREENS */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            color: #d4bb8c; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; text-align: center;
+        }
+
+        .action-btn {
+            margin-top: 30px; padding: 15px 30px;
+            background: linear-gradient(to bottom, #d4af37, #8b6508);
+            border: 2px solid #ffdf70; border-radius: 30px; color: #fff; font-size: 18px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.8); transition: transform 0.2s;
+        }
+        
+        .action-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <div class="vignette"></div>
+
+    <div id="find-panel"></div>
+
+    <div id="objects-layer"></div>
+
+    <div id="scroll-overlay">
+        <div class="scroll-content">
+            <h3 id="question-text"></h3>
+            <div id="options-container"></div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="screen">
+        <h1 style="font-size: 28px; color: #ffdf70; margin-bottom: 10px;">寻宝岛</h1>
+        <p>第一关：寻找遗失的文物并回答历史问题</p>
+        <button class="action-btn" onclick="startGame()">开始探险</button>
+    </div>
+
+    <div id="victory-screen" class="screen" style="display: none;">
+        <h1 style="font-size: 32px; color: #ffdf70; margin-bottom: 15px;">寻宝完成！</h1>
+        <p>通往地下宫殿的大门已解锁...</p>
+        <button class="action-btn" onclick="transitionToNextLevel()">进入下一关</button>
+    </div>
+
+</div>
+
+<script>
+    /* ==========================================
+       AUDIO ENGINE PATCH (Web Audio API) 
+       ========================================== */
+    let audioCtx;
+    
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // Generic Note Generator
+    function playNote(freq, type, duration, vol, startTime) {
+        if(!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    // 1. Ambient Background Music (Waterfall/Jungle Magic) - ~25% Volume
+    function startBGM() {
+        if(!audioCtx) return;
+        // Waterfall generation (Brown noise filter)
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let lastOut = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 3.5;
+        }
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = noiseBuffer;
+        noiseSrc.loop = true;
+
+        const noiseFilter = audioCtx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.value = 400; // Muffled distant waterfall
+
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = 0.25; // 25% Volume
+
+        noiseSrc.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noiseSrc.start();
+
+        // Random Magical Jungle Chimes
+        setInterval(() => {
+            if (Math.random() > 0.6) {
+                const t = audioCtx.currentTime;
+                playNote(400 + Math.random() * 400, 'sine', 2.5, 0.05, t);
+            }
+        }, 3500);
+    }
+
+    // 2. Magical Treasure Pickup Sound
+    function playPickup() {
+        if(!audioCtx) return;
+        const t = audioCtx.currentTime;
+        playNote(523.25, 'sine', 0.15, 0.1, t); // C5
+        playNote(659.25, 'sine', 0.15, 0.1, t + 0.1); // E5
+        playNote(783.99, 'sine', 0.3, 0.1, t + 0.2); // G5
+    }
+
+    // 3. Mystical Rune Sound (Popup opening)
+    function playPopup() {
+        if(!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.2);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // 4. Magical Success Chime (Correct Answer)
+    function playCorrect() {
+        if(!audioCtx) return;
+        const t = audioCtx.currentTime;
+        playNote(523.25, 'triangle', 0.5, 0.2, t); 
+        playNote(659.25, 'triangle', 0.5, 0.2, t); 
+        playNote(783.99, 'triangle', 0.5, 0.2, t); 
+        playNote(1046.50, 'triangle', 0.8, 0.2, t + 0.1); // Bright C6
+    }
+
+    // 5. Soft Dark Buzz (Wrong Answer)
+    function playWrong() {
+        if(!audioCtx) return;
+        const t = audioCtx.currentTime;
+        playNote(150, 'sawtooth', 0.3, 0.15, t);
+        playNote(100, 'sawtooth', 0.4, 0.15, t + 0.2);
+    }
+
+    // 6. Treasure Unlock Sound (Level Complete)
+    function playComplete() {
+        if(!audioCtx) return;
+        const t = audioCtx.currentTime;
+        playNote(523.25, 'sine', 0.3, 0.2, t);
+        playNote(659.25, 'sine', 0.3, 0.2, t + 0.2);
+        playNote(783.99, 'sine', 0.3, 0.2, t + 0.4);
+        playNote(1046.50, 'triangle', 1.5, 0.3, t + 0.6); // Epic final chord
+        playNote(1318.51, 'sine', 1.5, 0.3, t + 0.6);
+    }
+
+    // 7. Magical Portal Whoosh (Transition)
+    function transitionToNextLevel() {
+        if(audioCtx) {
+            const bufferSize = audioCtx.sampleRate * 1.5;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+            const noiseSrc = audioCtx.createBufferSource();
+            noiseSrc.buffer = noiseBuffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(2500, audioCtx.currentTime + 0.8);
+            filter.Q.value = 1.0;
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 0.5);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+
+            noiseSrc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noiseSrc.start();
+        }
+        
+        // Wait for whoosh to peak, then transition
+        setTimeout(() => {
+            window.location.href = 'transit.html';
+        }, 800);
+    }
+    /* ========================================== */
+
+    // 游戏数据 (包含本地图片路径与Sejarah问题)
+    const gameData = [
+        { id: 'key', src: 'golden-key.png', x: 20, y: 85, q: "Apakah maksud Sovereignty dalam bahasa Inggeris?", opts: ["Negara berhak menentukan sempadan", "Negara bersatu menentang penceroboh", "Negara berkuasa penuh dalam pentadbiran", "Negara berjuang menuntut kemerdekaan"], ans: 2 },
+        { id: 'hat', src: 'pirate-hat.png', x: 75, y: 80, q: "Bagaimanakah kedudukan raja ditentukan mengikut kedaulatan tradisional?", opts: ["Kesetiaan rakyat", "Kestabilan politik", "Kekuatan ketenteraan", "Keunggulan perlembagaan"], ans: 0 },
+        { id: 'ruby', src: 'ruby-gem.png', x: 45, y: 72, q: "Senarai berikut berkaitan dengan negara persekutuan. Raja Berperlembagaan & X. Apakah X?", opts: ["Sistem Republik", "Demokrasi mutlak", "Demokrasi Berparlimen", "Pemerintahan raja berkuasa mutlak"], ans: 2 },
+        { id: 'coin', src: 'pirate-coin.png', x: 80, y: 55, q: "Apakah perundangan yang menjadi asas kepada sistem peraturan negara kita?", opts: ["Undang-undang adat", "Hukum Kanun Melaka", "Undang-undang syariah", "Perlembagaan Persekutuan"], ans: 3 },
+        { id: 'skull', src: 'skull.png', x: 25, y: 45, q: "Apakah peranan utama Yang di-Pertuan Agong dalam pentadbiran negara?", opts: ["Ketua Kerajaan", "Ketua Institusi Beraja", "Ketua Utama Negara", "Ketua Pentadbir Negara"], ans: 2 },
+        { id: 'lantern', src: 'lantern.png', x: 60, y: 35, q: "Dasar Pembangunan Ekonomi dibentuk selepas merdeka. Apakah matlamat yang hendak dicapai?", opts: ["Mentransformasikan ekonomi", "Meningkat taraf hidup rakyat", "Memantapkan peranan FELDA", "Memperkenalkan pertanian dagangan"], ans: 1 },
+        { id: 'compass', src: 'compass.png', x: 75, y: 28, q: "Mengapakah Perlembagaan Persekutuan memperuntukkan pengagihan kuasa?", opts: ["Menggalakkan kerjasama", "Memudahkan pemerintahan", "Mewujudkan pentadbiran yang berkesan", "Memastikan dasar dilaksanakan"], ans: 2 },
+        { id: 'sword', src: 'curved-sword.png', x: 35, y: 18, q: "Yang manakah berkaitan dengan pengiktirafan PBB terhadap sesebuah negara?", opts: ["Kedaulatan tradisional", "Kedaulatan moden", "Kedaulatan undang-undang", "Kedaulatan antarabangsa"], ans: 3 },
+        { id: 'bottle', src: 'glass-bottle.png', x: 75, y: 12, q: "Apakah maksud Daulah dalam Bahasa Arab?", opts: ["Keagungan", "Ketinggian", "Kekuasaan tertinggi", "Kuasa pemerintahan"], ans: 3 },
+        { id: 'chest', src: 'treasure-chest.png', x: 50, y: 6, q: "Tokoh X: 'Kedaulatan dibina berdasarkan prinsip kebebasan dan keadilan'. Siapakah X?", opts: ["Aristotle", "Jean Bodin", "Ibn Khaldun", "Tunku Abdul Rahman"], ans: 2 }
+    ];
+
+    let itemsFound = 0;
+
+    function startGame() {
+        initAudio(); // 初始化音频 / Initialize Audio
+        startBGM();  // 播放背景音乐 / Play BGM
+        document.getElementById('start-screen').style.display = 'none';
+        buildGameWorld();
+    }
+
+    function buildGameWorld() {
+        const findPanel = document.getElementById('find-panel');
+        const objectsLayer = document.getElementById('objects-layer');
+
+        gameData.forEach(item => {
+            // 生成侧边栏图标 (UI Panel)
+            const uiIcon = document.createElement('img');
+            uiIcon.className = 'ui-item';
+            uiIcon.id = `ui-${item.id}`;
+            uiIcon.src = item.src;
+            findPanel.appendChild(uiIcon);
+
+            // 生成地图上的隐藏物品 (Game Map Objects)
+            const mapObj = document.createElement('img');
+            mapObj.className = 'hidden-object';
+            mapObj.id = `obj-${item.id}`;
+            mapObj.src = item.src;
+            mapObj.style.left = `${item.x}%`;
+            mapObj.style.top = `${item.y}%`;
+            
+            mapObj.onclick = () => openQuestionPopup(item, mapObj);
+            objectsLayer.appendChild(mapObj);
+        });
+    }
+
+    function openQuestionPopup(itemData, mapObj) {
+        // 触发物品发光动画并播放拾取音效 / Trigger glow and play pickup SFX
+        playPickup();
+        mapObj.classList.add('object-glow');
+        
+        setTimeout(() => {
+            playPopup(); // 播放卷轴展开音效 / Play popup SFX
+            document.getElementById('scroll-overlay').style.display = 'flex';
+            document.getElementById('question-text').innerText = itemData.q;
+            
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = ''; 
+
+            itemData.opts.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = String.fromCharCode(65 + index) + ". " + optText;
+                btn.onclick = () => handleAnswerClick(btn, index, itemData, mapObj);
+                optsContainer.appendChild(btn);
+            });
+        }, 800);
+    }
+
+    function handleAnswerClick(clickedBtn, selectedIndex, itemData, mapObj) {
+        // 锁定按钮，防止多次点击
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.onclick = null);
+
+        // 验证答案并播放对应音效 / Check answer and play SFX
+        if (selectedIndex === itemData.ans) {
+            clickedBtn.classList.add('correct');
+            playCorrect(); // 播放正确音效
+        } else {
+            clickedBtn.classList.add('wrong');
+            // 显示正确答案
+            allBtns[itemData.ans].classList.add('correct'); 
+            playWrong(); // 播放错误音效
+        }
+
+        // 延迟关闭窗口并更新UI
+        setTimeout(() => {
+            document.getElementById('scroll-overlay').style.display = 'none';
+            markItemAsFound(itemData.id, mapObj);
+        }, 1500);
+    }
+
+    function markItemAsFound(itemId, mapObj) {
+        // 更新侧边栏
+        const uiItem = document.getElementById(`ui-${itemId}`);
+        uiItem.classList.add('found');
+        
+        // 从地图中移除物品
+        mapObj.remove();
+        itemsFound++;
+
+        // 检查是否全部找到
+        if (itemsFound === gameData.length) {
+            setTimeout(() => {
+                playComplete(); // 播放关卡完成音效 / Play level complete SFX
+                document.getElementById('victory-screen').style.display = 'flex';
+            }, 800);
+        }
+    }
+</script>
+</body>
+</html>
