@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>古老仪式的唤醒</title>
+    <style>
+        /* 基础重置与性能优化 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-drag: none;
+            will-change: transform, opacity;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030303;
+            font-family: 'STKaiti', 'KaiTi', 'Microsoft YaHei', sans-serif;
+            color: #e2d7c5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 电影级 9:16 纵向比例容器 */
+        .game-viewport {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            aspect-ratio: 9/16;
+            background-color: #050706;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 高能镜头瞬时震动反馈 */
+        @keyframes cameraShake {
+            0% { transform: translate(0, 0) scale(1); }
+            15% { transform: translate(-8px, 6px) rotate(-1.2deg) scale(1.02); }
+            30% { transform: translate(8px, -6px) rotate(1.2deg) scale(1.02); }
+            45% { transform: translate(-6px, -4px) rotate(-0.6deg) scale(1.01); }
+            60% { transform: translate(6px, 4px) rotate(0.6deg) scale(1.01); }
+            75% { transform: translate(-3px, 2px) rotate(-0.3deg) scale(1.005); }
+            90% { transform: translate(3px, -2px) rotate(0.3deg) scale(1.005); }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        }
+
+        .camera-shake {
+            animation: cameraShake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* 全局粒子画布 */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* --- 极速引导石碑（控制在1秒以内起航） --- */
+        #activationGate {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0d1410 0%, #030504 100%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.35s;
+            padding: 30px;
+        }
+
+        #activationGate.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* 紧凑而富有张力的引导石碑 */
+        .stone-tablet {
+            width: 110px;
+            height: 170px;
+            background: linear-gradient(180deg, #18221c 0%, #0f1411 100%);
+            border: 2px solid #8a6f27;
+            border-radius: 6px;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.2), inset 0 0 12px rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            margin-bottom: 25px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stone-tablet::after {
+            content: "✦";
+            font-size: 1.8rem;
+            color: #ffd700;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+            animation: pulseGlow 1.2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.9); opacity: 0.6; filter: drop-shadow(0 0 2px #ffd700); }
+            100% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 8px #ffd700); }
+        }
+
+        .stone-tablet:active {
+            transform: scale(0.95);
+        }
+
+        .gate-instruction {
+            font-size: 1.05rem;
+            color: #ffe066;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255, 224, 102, 0.4);
+        }
+
+        /* --- 动画舞台样式（高能提速版过渡） --- */
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.25s;
+            z-index: 5;
+        }
+
+        .stage.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- 第一阶段：时空传送门 --- */
+        #stage1 {
+            background: radial-gradient(circle at center, #0e1713 0%, #030504 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .portal-container {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            margin-bottom: 40px;
+        }
+
+        .portal-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(212, 175, 55, 0.6);
+            border-radius: 50%;
+            animation: rotateClockwise 12s linear infinite;
+        }
+
+        .portal-ring-inner {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            border: 1px dashed rgba(255, 224, 102, 0.5);
+            border-radius: 50%;
+            animation: rotateCounterClockwise 8s linear infinite;
+        }
+
+        .portal-core {
+            position: absolute;
+            top: 32px;
+            left: 32px;
+            right: 32px;
+            bottom: 32px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.9) 0%, rgba(212, 175, 55, 0.3) 60%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(3px);
+            animation: portalPulse 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes rotateClockwise { to { transform: rotate(360deg); } }
+        @keyframes rotateCounterClockwise { to { transform: rotate(-360deg); } }
+        @keyframes portalPulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .narrative-box {
+            text-align: center;
+            max-width: 90%;
+            height: 60px;
+        }
+
+        .narrative-text {
+            font-size: 1.1rem;
+            color: #e2d7c5;
+            line-height: 1.6;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .narrative-text.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- 第二阶段：废墟与剪影 --- */
+        #stage2 {
+            background: linear-gradient(180deg, #09110d 0%, #030504 100%);
+        }
+
+        .parallax-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-size: cover;
+            background-position: center bottom;
+            pointer-events: none;
+            transition: transform 1.2s cubic-bezier(0.15, 0.85, 0.35, 1);
+        }
+
+        .ruins-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            fill: #060a08;
+        }
+
+        .ruins-mid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            fill: #090e0b;
+        }
+
+        .explorer-container {
+            position: absolute;
+            bottom: 15%;
+            left: -50px;
+            width: 60px;
+            height: 90px;
+            animation: walkAcrossFast 1s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .explorer-silhouette {
+            width: 30px;
+            height: 70px;
+            fill: #000000;
+        }
+
+        .torch-glow {
+            position: absolute;
+            top: 15px;
+            right: -10px;
+            width: 35px;
+            height: 35px;
+            background: radial-gradient(circle, rgba(255, 140, 0, 0.95) 0%, rgba(255, 69, 0, 0.4) 50%, rgba(0,0,0,0) 80%);
+            border-radius: 50%;
+            animation: torchFlickerFast 0.1s infinite alternate;
+        }
+
+        @keyframes torchFlickerFast {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1.1) translate(1px, -1px); opacity: 1; }
+        }
+
+        @keyframes walkAcrossFast {
+            0% { left: -50px; transform: scale(0.9); }
+            100% { left: calc(50% - 30px); transform: scale(1); }
+        }
+
+        .stage2-fog {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(180deg, transparent, rgba(14, 22, 17, 0.6));
+            pointer-events: none;
+        }
+
+        /* --- 第三阶段与第四阶段：高能卷轴快速开合 --- */
+        #stage3 {
+            background: radial-gradient(circle at center, #0c120f 0%, #030403 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .scroll-container {
+            position: relative;
+            height: 80vh;
+            max-height: 530px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center center;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 状态 1: 帝国画轴初始状态——小、微调、模糊、极速就位准备 */
+        .state-scroll-init {
+            width: 44px;
+            transform: scale(0.01) rotate(-45deg);
+            opacity: 0;
+            filter: blur(15px);
+        }
+
+        /* 状态 2: 砸至眼前瞬间 */
+        .state-scroll-flyin {
+            width: 44px;
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: blur(0px);
+        }
+
+        /* 状态 3: 黄金快速横向横张 (缩短展开时间至 0.8 秒) */
+        .state-scroll-unfold {
+            width: 92%;
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: blur(0px);
+            transition: width 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 状态 4: 完全铺平，开启文本淡入 */
+        .state-scroll-reveal {
+            width: 92%;
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: blur(0px);
+        }
+
+        /* 羊皮纸材质圣旨 */
+        .scroll-paper {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #f5e8d3 60%, #dec8a5 100%);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border-top: 4px double #5a3f12;
+            border-bottom: 4px double #5a3f12;
+            z-index: 10;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 22px 16px;
+            color: #382414;
+        }
+
+        /* 对称卷轴 */
+        .scroll-roller {
+            position: absolute;
+            top: -10px;
+            bottom: -10px;
+            width: 20px;
+            background: linear-gradient(90deg, #3d240d 0%, #7c5026 30%, #3d240d 100%);
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+            z-index: 12;
+        }
+
+        .scroll-roller-left { left: -10px; }
+        .scroll-roller-right { right: -10px; }
+
+        .scroll-roller::before, .scroll-roller::after {
+            content: '';
+            position: absolute;
+            left: -3px;
+            width: 26px;
+            height: 16px;
+            background: radial-gradient(circle, #d4af37 20%, #8a6f27 100%);
+            border: 1px solid #5a3f12;
+            border-radius: 50%;
+        }
+
+        .scroll-roller::before { top: -13px; }
+        .scroll-roller::after { bottom: -13px; }
+
+        /* 内容瞬时淡入 */
+        .scroll-content {
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .state-scroll-reveal .scroll-content {
+            opacity: 1;
+        }
+
+        .scroll-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            color: #5a2c00;
+            margin-bottom: 14px;
+            border-bottom: 2px dashed rgba(90, 63, 18, 0.2);
+            padding-bottom: 6px;
+            letter-spacing: 2px;
+        }
+
+        .scroll-p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            text-align: justify;
+            text-indent: 2em;
+            color: #4a3424;
+        }
+
+        .scroll-card {
+            background: rgba(90, 63, 18, 0.05);
+            border-left: 3px solid #8a6f27;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            border-radius: 2px;
+        }
+
+        .card-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #6a3a00;
+            margin-bottom: 1px;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: #5a483a;
+            line-height: 1.35;
+        }
+
+        .report-highlight {
+            background: rgba(184, 134, 11, 0.12);
+            border: 1px dashed rgba(90, 63, 18, 0.35);
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #5a2c00;
+        }
+
+        /* 开始按钮 */
+        .btn-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.4s cubic-bezier(0.18, 0.9, 0.32, 1.15);
+        }
+
+        .state-scroll-reveal .btn-container {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .btn-adventure {
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 50%, #8a6f27 100%);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.3);
+            color: #0c0f0d;
+            padding: 10px 36px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            outline: none;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-adventure:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 22px rgba(255, 215, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-adventure:active {
+            transform: scale(0.96);
+        }
+
+        /* 强白光转场覆盖层 */
+        #flashOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            opacity: 0;
+            z-index: 200;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in;
+        }
+
+        #flashOverlay.flash {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-viewport" id="viewport">
+        <canvas id="particleCanvas"></canvas>
+        <div id="flashOverlay"></div>
+
+        <!-- 极速唤醒石碑层 (1秒内触发) -->
+        <div id="activationGate">
+            <div class="stone-tablet" id="tablet"></div>
+            <p class="gate-instruction">触摸石碑 · 即刻唤醒</p>
+        </div>
+
+        <!-- 第一阶段：时空传送门 -->
+        <div class="stage" id="stage1">
+            <div class="portal-container">
+                <div class="portal-ring"></div>
+                <div class="portal-ring-inner"></div>
+                <div class="portal-core"></div>
+            </div>
+            <div class="narrative-box">
+                <p id="narrativeText" class="narrative-text"></p>
+            </div>
+        </div>
+
+        <!-- 第二阶段：废墟与探险家剪影 -->
+        <div class="stage" id="stage2">
+            <div class="parallax-layer" id="parallaxSky">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:100%;">
+                    <circle cx="15" cy="15" r="0.4" fill="#ffffff" opacity="0.8"/>
+                    <circle cx="45" cy="25" r="0.6" fill="#ffd700" opacity="0.6"/>
+                    <circle cx="75" cy="10" r="0.5" fill="#ffffff" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="parallax-layer" id="parallaxMid" style="transform: scale(1.02);">
+                <svg class="ruins-bg" viewBox="0 0 100 50" preserveAspectRatio="none">
+                    <path d="M0 50 L0 15 L10 15 L10 25 L15 25 L15 10 L25 10 L25 35 L40 35 L45 5 L60 5 L60 30 Z"/>
+                </svg>
+            </div>
+            <div class="parallax-layer" id="parallaxFore">
+                <svg class="ruins-mid" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <rect x="5" y="5" width="4" height="35" />
+                    <rect x="85" y="10" width="5" height="30" />
+                </svg>
+            </div>
+            <div class="explorer-container" id="explorer">
+                <div class="torch-glow"></div>
+                <svg class="explorer-silhouette" viewBox="0 0 30 70">
+                    <circle cx="15" cy="12" r="6" />
+                    <path d="M15 18 L10 40 L5 65 L10 65 L14 42 L16 42 L20 65 L25 65 Z" />
+                    <path d="M15 18 L24 23 L28 12 L30 14 L25 28 Z" />
+                </svg>
+            </div>
+            <div class="stage2-fog"></div>
+        </div>
+
+        <!-- 第三阶段：高能画卷空降展开 -->
+        <div class="stage" id="stage3">
+            <div class="scroll-container state-scroll-init" id="cinematicScroll">
+                <div class="scroll-roller scroll-roller-left"></div>
+                <div class="scroll-paper">
+                    <div class="scroll-content">
+                        <h2 class="scroll-title">探险家圣谕</h2>
+                        
+                        <p class="scroll-p">
+                            勇敢的历史学子，你已站在尘封的废墟前。前方危机重重，唯有将智慧化为利剑，直面三大核心试炼：
+                        </p>
+
+                        <div class="scroll-card">
+                            <div class="card-name">🔍 第一关：遗迹寻宝</div>
+                            <div class="card-desc">在古老的宫殿残迹中寻找隐秘线索，揭开历史印记。</div>
+                        </div>
+
+                        <div class="scroll-card">
+                            <div class="card-name">🚪 第二关：试炼隧道</div>
+                            <div class="card-desc">穿越时空回廊机关，做出决定历史方向的果断判断。</div>
+                        </div>
+
+                        <div class="scroll-card">
+                            <div class="card-name">🧩 第三关：主权迷宫</div>
+                            <div class="card-desc">步入核心祭坛迷宫，完成最后的圣物归位挑战。</div>
+                        </div>
+
+                        <div class="report-highlight">
+                            🏆 通关后将获得专属“历史主权卫士”个人能力报告！
+                        </div>
+
+                        <div class="btn-container">
+                            <button class="btn-adventure" id="btnStart">开始探险</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll-roller scroll-roller-right"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /************************************************************
+         * 1. 动力学金砂粒子特效
+         ************************************************************/
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let particleMode = 'drift';
+
+        function resizeCanvas() {
+            const viewport = document.getElementById('viewport');
+            canvas.width = viewport.clientWidth;
+            canvas.height = viewport.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 10;
+                this.size = Math.random() * 2 + 0.6;
+                this.angle = Math.random() * Math.PI * 2;
+                this.speed = Math.random() * 0.6 + 0.4;
+                this.alpha = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.4 ? '#ffd700' : '#ffe066';
+                this.radius = Math.random() * 80 + 40;
+            }
+
+            update() {
+                if (particleMode === 'spiral') {
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height * 0.35;
+                    this.angle += 0.04;
+                    this.radius -= 0.8;
+                    this.x = cx + Math.cos(this.angle) * this.radius;
+                    this.y = cy + Math.sin(this.angle) * this.radius;
+                    if (this.radius <= 5) {
+                        this.reset();
+                        this.radius = Math.random() * 120 + 80;
+                    }
+                } else {
+                    this.y -= this.speed;
+                    this.x += Math.sin(this.angle) * 0.25;
+                    this.angle += 0.015;
+                    if (this.y < canvas.height * 0.3) {
+                        this.alpha -= 0.007;
+                    }
+                    if (this.y < -10 || this.alpha <= 0) {
+                        this.reset();
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        const particleCount = 45;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function renderParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(renderParticles);
+        }
+        renderParticles();
+
+
+        /************************************************************
+         * 2. 高频响应式 Web Audio API 合成音效
+         ************************************************************/
+        let audioCtx = null;
+        let masterGain = null;
+        let delayNode = null;
+        let schedulerInterval = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            masterGain.connect(audioCtx.destination);
+
+            delayNode = audioCtx.createDelay(1.5);
+            const feedback = audioCtx.createGain();
+            delayNode.delayTime.setValueAtTime(0.4, audioCtx.currentTime);
+            feedback.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            delayNode.connect(feedback);
+            feedback.connect(delayNode);
+            delayNode.connect(masterGain);
+
+            startAmbientPad();
+        }
+
+        function startAmbientPad() {
+            const bassFrequencies = [55.00, 48.99, 43.65, 41.20]; // A1, G1, F1, E1
+            let bassIdx = 0;
+
+            function playSlowChord() {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const padGain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                osc1.type = 'sawtooth';
+                osc2.type = 'triangle';
+
+                osc1.frequency.setValueAtTime(bassFrequencies[bassIdx], audioCtx.currentTime);
+                osc2.frequency.setValueAtTime(bassFrequencies[bassIdx] * 1.5, audioCtx.currentTime);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(160, audioCtx.currentTime);
+
+                padGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                padGain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 1.5);
+                padGain.gain.setValueAtTime(0.2, audioCtx.currentTime + 3.0);
+                padGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(padGain);
+                padGain.connect(masterGain);
+
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioCtx.currentTime + 5.1);
+                osc2.stop(audioCtx.currentTime + 5.1);
+
+                bassIdx = (bassIdx + 1) % bassFrequencies.length;
+            }
+
+            const ancientMelody = [220.00, 246.94, 277.18, 329.63, 392.00, 440.00];
+            function playMelodyNotes() {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                const freq = ancientMelody[Math.floor(Math.random() * ancientMelody.length)];
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                g.gain.setValueAtTime(0, audioCtx.currentTime);
+                g.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.2);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.0);
+
+                osc.connect(g);
+                g.connect(masterGain);
+                if (delayNode) g.connect(delayNode);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 2.1);
+            }
+
+            playSlowChord();
+            schedulerInterval = setInterval(playSlowChord, 4500);
+            setInterval(playMelodyNotes, 2800);
+        }
+
+        // 高速飞越风切声 (Whoosh SFX)
+        function playWhooshSFX() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(550, audioCtx.currentTime + 0.45);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(450, audioCtx.currentTime);
+
+            g.gain.setValueAtTime(0, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.15);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.48);
+
+            osc.connect(filter);
+            filter.connect(g);
+            g.connect(masterGain);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // 强冲击砸落音效 (Impact Slam SFX)
+        function playSlamSFX() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const oscBass = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.3);
+
+            oscBass.type = 'sine';
+            oscBass.frequency.setValueAtTime(70, audioCtx.currentTime);
+            oscBass.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.4);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(150, audioCtx.currentTime);
+
+            g.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+            osc.connect(filter);
+            oscBass.connect(filter);
+            filter.connect(g);
+            g.connect(masterGain);
+
+            osc.start();
+            oscBass.start();
+            osc.stop(audioCtx.currentTime + 0.45);
+            oscBass.stop(audioCtx.currentTime + 0.45);
+        }
+
+        // 快速高亢魔法碎金声
+        function playUnfoldChimesSFX() {
+            if (!audioCtx) return;
+            const startTime = audioCtx.currentTime;
+            
+            for (let i = 0; i < 8; i++) {
+                const noteDelay = i * 0.08;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                const goldenFreqs = [880.00, 1046.50, 1174.66, 1318.51, 1567.98];
+                const freq = goldenFreqs[Math.floor(Math.random() * goldenFreqs.length)];
+                
+                osc.frequency.setValueAtTime(freq, startTime + noteDelay);
+                
+                g.gain.setValueAtTime(0, startTime + noteDelay);
+                g.gain.linearRampToValueAtTime(0.03, startTime + noteDelay + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, startTime + noteDelay + 0.25);
+                
+                osc.connect(g);
+                g.connect(masterGain);
+                if (delayNode) g.connect(delayNode);
+                
+                osc.start(startTime + noteDelay);
+                osc.stop(startTime + noteDelay + 0.3);
+            }
+        }
+
+        function playHoverChime() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+
+            g.gain.setValueAtTime(0.03, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+            osc.connect(g);
+            g.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.11);
+        }
+
+        function playStartFlourish(onDone) {
+            if (!audioCtx) {
+                onDone();
+                return;
+            }
+            const now = audioCtx.currentTime;
+            const arpeggio = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+            
+            arpeggio.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                const noteTime = now + idx * 0.05;
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, noteTime);
+
+                g.gain.setValueAtTime(0, noteTime);
+                g.gain.linearRampToValueAtTime(0.08, noteTime + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.4);
+
+                osc.connect(g);
+                g.connect(masterGain);
+                if (delayNode) g.connect(delayNode);
+
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.45);
+            });
+
+            setTimeout(onDone, 450);
+        }
+
+
+        /************************************************************
+         * 3. 极速状态切换机制
+         ************************************************************/
+        const viewport = document.getElementById('viewport');
+        const tablet = document.getElementById('tablet');
+        const activationGate = document.getElementById('activationGate');
+        const stage1 = document.getElementById('stage1');
+        const stage2 = document.getElementById('stage2');
+        const stage3 = document.getElementById('stage3');
+        const narrativeText = document.getElementById('narrativeText');
+        const cinematicScroll = document.getElementById('cinematicScroll');
+        const btnStart = document.getElementById('btnStart');
+        const flashOverlay = document.getElementById('flashOverlay');
+
+        tablet.addEventListener('click', () => {
+            initAudio();
+            activationGate.classList.add('hidden');
+            startExcitingCinematic();
+        });
+
+        function startExcitingCinematic() {
+            
+            // --- Stage 1: 时空传送门开启 (t = 0s) ---
+            stage1.classList.add('active');
+            particleMode = 'spiral';
+            
+            // 快速剧情句字幕投射
+            narrativeText.textContent = "在历史长河的深处……";
+            narrativeText.classList.add('show');
+
+            // 0.4s后切第二句，保持情绪连续无空档
+            setTimeout(() => {
+                narrativeText.classList.remove('show');
+                setTimeout(() => {
+                    narrativeText.textContent = "失落的主权圣物正在等待新的探险家……";
+                    narrativeText.classList.add('show');
+                }, 80);
+            }, 450);
+
+            // --- Stage 2: 剪影快速步行穿梭 (t = 1.0s) ---
+            setTimeout(() => {
+                narrativeText.classList.remove('show');
+                stage1.classList.remove('active');
+                stage2.classList.add('active');
+                particleMode = 'drift';
+
+                // 高速透视缩放
+                document.getElementById('parallaxSky').style.transform = 'scale(1.08) translateY(5px)';
+                document.getElementById('parallaxMid').style.transform = 'scale(1.12) translateY(10px)';
+                document.getElementById('parallaxFore').style.transform = 'scale(1.15) translateY(13px)';
+            }, 1000);
+
+            // --- Stage 3: 画卷呼啸坠落与砸碎屏 (t = 1.4s) ---
+            setTimeout(() => {
+                stage2.classList.remove('active');
+                stage3.classList.add('active');
+
+                // 画卷初始瞬间高空进入 (Whoosh!)
+                setTimeout(() => {
+                    cinematicScroll.className = "scroll-container state-scroll-flyin";
+                    playWhooshSFX();
+                }, 50);
+
+                // 砸落屏幕并触发震动效果 (Slam!) (t = 1.8s)
+                setTimeout(() => {
+                    viewport.classList.add('camera-shake');
+                    playSlamSFX();
+                    
+                    setTimeout(() => {
+                        viewport.classList.remove('camera-shake');
+                    }, 350);
+                }, 400);
+
+                // 极速画卷横向物理延展 (Unfold!) (t = 2.1s)
+                setTimeout(() => {
+                    cinematicScroll.className = "scroll-container state-scroll-unfold";
+                    playUnfoldChimesSFX();
+                }, 750);
+
+                // 呈现墨卷全部内容与按钮 (Reveal!) (t = 2.9s)
+                setTimeout(() => {
+                    cinematicScroll.className = "scroll-container state-scroll-reveal";
+                }, 1500);
+
+            }, 1400);
+        }
+
+        // --- Stage 4: 点击高能跳转 ---
+        btnStart.addEventListener('mouseenter', playHoverChime);
+
+        btnStart.addEventListener('click', () => {
+            btnStart.disabled = true;
+            btnStart.style.opacity = '0.6';
+
+            playStartFlourish(() => {
+                // 卷轴合拢并进行急速白光爆发转场
+                cinematicScroll.className = "scroll-container state-scroll-flyin";
+
+                setTimeout(() => {
+                    flashOverlay.classList.add('flash');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'level1.html';
+                    }, 400);
+                }, 150);
+            });
+        });
+    </script>
+</body>
+</html>
