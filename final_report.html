@@ -376,9 +376,7 @@ async function uploadToGoogleSheet(session) {
 
         await fetch("https://script.google.com/macros/s/AKfycbwhwnp9PqcDkKPXnoTpJFYKGSK_8Hcc2e4NPbUYNnulsWEPNCUDybVWGkGUKkDpc_zO/exec", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            mode: "no-cors",
             body: JSON.stringify({
                 attemptId: session.attemptId,
                 date: session.date,
