@@ -368,11 +368,15 @@ uploadToGoogleSheet(session);
     }
 async function uploadToGoogleSheet(session) {
 
+    console.log("UPLOAD START");
+
     if (session.googleSheetUploaded) {
         return;
     }
 
     try {
+
+        console.log("BEFORE FETCH");
 
         await fetch("https://script.google.com/macros/s/AKfycbwgDCJS-g5ILVvn9-sfjepqO8_zUqvn9peDHEzZHt-ZrKNFFpM83Ia3eRbZ9w-3ao2_/exec", {
             method: "POST",
