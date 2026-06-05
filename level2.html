@@ -199,9 +199,9 @@
         .analysis-box strong { color: #f4e8c1; display: block; margin-bottom: 3px; }
         
         .whatsapp-btn {
-            background: rgba(37, 211, 102, 0.1);
-            border-color: #25D366;
-            color: #25D366;
+            background: rgba(212, 175, 55, 0.1);
+            border-color: #d4af37;
+            color: #d4af37;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -209,8 +209,8 @@
             gap: 8px;
         }
         .whatsapp-btn:hover {
-            background: rgba(37, 211, 102, 0.3);
-            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+            background: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
     </style>
 </head>
@@ -259,7 +259,8 @@
 
             <div style="margin-top: 25px; border-top: 1px solid #5c4033; padding-top: 20px;">
                 <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">继续你的学习之旅</div>
-                <a href="https://wa.me/60105801561?text=Hi,%20I%20completed%20the%20Ancient%20Palace%20educational%20adventure%20and%20would%20like%20to%20receive%20my%20learning%20analysis." target="_blank" class="action-btn whatsapp-btn">
+                <!-- Preserving visual layout of whatsapp-btn, modifying href redirect only -->
+                <a href="completion.html" class="action-btn whatsapp-btn">
                     💬 联系学习顾问
                 </a>
             </div>
@@ -293,18 +294,85 @@
     <canvas id="gameCanvas"></canvas>
 
     <script>
+        /* ==========================================
+           STORAGE FOUNDATION DRIVERS
+           ========================================== */
+        const SESSION_KEY = 'sovereigns_relic_session';
+        let level2StartTime = Date.now();
+        let barrierScores = { "Q1": 0, "Q2": 0, "Q3": 0, "Q4": 0, "Q5": 0 };
+
+        function generateAttemptId() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}${mm}${dd}`;
+            
+            let counter = parseInt(localStorage.getItem('sovereigns_relic_attempt_counter') || '0', 10);
+            counter += 1;
+            localStorage.setItem('sovereigns_relic_attempt_counter', counter);
+            
+            const xxx = String(counter).padStart(3, '0');
+            return `HIS-${dateStr}-${xxx}`;
+        }
+
+        function createDefaultSession() {
+            return {
+                attemptId: generateAttemptId(),
+                date: new Date().toISOString(),
+                completedStatus: false,
+                googleSheetUploaded: false,
+                level1Score: 0,
+                level1Time: 0,
+                transitScore: 0,
+                transitTime: 0,
+                level2Score: 0,
+                level2Time: 0,
+                totalTime: 0,
+                q1_q5_answers: [
+                    { "questionId": "Q1", "answer": "" },
+                    { "questionId": "Q2", "answer": "" },
+                    { "questionId": "Q3", "answer": "" },
+                    { "questionId": "Q4", "answer": "" },
+                    { "questionId": "Q5", "answer": "" }
+                ],
+                learningType: '',
+                name: '',
+                phone: '',
+                email: ''
+            };
+        }
+
+        function initializeGameSession() {
+            let session = localStorage.getItem(SESSION_KEY);
+            if (!session) {
+                session = createDefaultSession();
+                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            }
+            return JSON.parse(session);
+        }
+
+        function saveGameSession(sessionData) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        }
+
+        function loadGameSession() {
+            const session = localStorage.getItem(SESSION_KEY);
+            return session ? JSON.parse(session) : initializeGameSession();
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const bgMusic = document.getElementById("bgMusic");
         const barrierSound = document.getElementById("barrierSound");
         const successSound = document.getElementById("successSound");
         const ghostSound = document.getElementById("ghostSound");
 
-document.addEventListener("click", () => {
-    if (bgMusic.paused) {
-        bgMusic.volume = 0.2;
-        bgMusic.play();
-    }
-}, { once: true });
+        document.addEventListener("click", () => {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.2;
+                bgMusic.play();
+            }
+        }, { once: true });
 
         const ctx = canvas.getContext('2d');
 
@@ -365,10 +433,7 @@ document.addEventListener("click", () => {
         };
 
         const TOTAL_BARRIERS = Object.keys(barrierData).length;
-        
-        // Dynamically compute absolute total keywords to prevent hardcoding index mismatch errors
-        let totalPointsPossible = 0;
-        Object.values(barrierData).forEach(b => totalPointsPossible += b.keys.length);
+        let totalPointsPossible = 38; 
 
         const gameStats = {
             pointsIdentified: 0,
@@ -530,30 +595,60 @@ document.addEventListener("click", () => {
                 const inputVal = inputField.value.trim();
                 if(!inputVal) return; 
 
+                // Structured formats mapping coordinates to question IDs
+                let qId = "";
+                let maxMark = 4;
+                if (row === 3 && col === 3) { qId = "Q1"; maxMark = 6; }
+                else if (row === 7 && col === 5) { qId = "Q2"; maxMark = 4; }
+                else if (row === 9 && col === 9) { qId = "Q3"; maxMark = 4; }
+                else if (row === 3 && col === 15) { qId = "Q4"; maxMark = 4; }
+                else if (row === 11 && col === 15) { qId = "Q5"; maxMark = 4; }
+
+                // Flexible text keyword matching
+                const matchedKeys = data.keys.filter(key => inputVal.toLowerCase().includes(key.toLowerCase()));
+                const matchedCount = matchedKeys.length;
+                
+                // Cap the individual score by maximum mark weightings
+                const capScore = Math.min(matchedCount, maxMark);
+
+                if (qId) {
+                    barrierScores[qId] = capScore;
+                    let session = loadGameSession();
+                    if (!session.q1_q5_answers) {
+                        session.q1_q5_answers = [
+                            { "questionId": "Q1", "answer": "" },
+                            { "questionId": "Q2", "answer": "" },
+                            { "questionId": "Q3", "answer": "" },
+                            { "questionId": "Q4", "answer": "" },
+                            { "questionId": "Q5", "answer": "" }
+                        ];
+                    }
+                    const qObj = session.q1_q5_answers.find(item => item.questionId === qId);
+                    if (qObj) {
+                        qObj.answer = inputVal;
+                        saveGameSession(session);
+                    }
+                }
+
                 inputField.style.display = 'none';
                 btnGroup.style.display = 'none';
 
                 const feedback = document.getElementById('q-feedback');
-                
-                // Flexible text keyword matching
-                const matchedKeys = data.keys.filter(key => inputVal.toLowerCase().includes(key.toLowerCase()));
-                const score = matchedKeys.length;
-                const total = data.keys.length;
 
-                gameStats.pointsIdentified += score;
+                gameStats.pointsIdentified += matchedCount; // UI shows raw points accumulated
                 gameStats.barriersCleared++;
 
                 let feedbackHTML = `<div style="text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #7a6a57;">`;
                 feedbackHTML += `<span style="color: #4CAF50;">✔ 已检测到的历史得分点:</span><br>`;
                 
-                if (score > 0) {
+                if (matchedCount > 0) {
                     matchedKeys.forEach(k => { feedbackHTML += `<span style="color: #d4af37; margin-left: 10px;">- ${k}</span><br>`; });
                 } else {
                     feedbackHTML += `<span style="color: #999; margin-left: 10px;">- 未检测到任何匹配项</span><br>`;
                 }
                 
                 feedbackHTML += `<br><span style="color: #f4e8c1;">得分:</span><br>`;
-                feedbackHTML += `<strong style="color: #d4af37; font-size: 1.2rem;">${score} / ${total} 个要点已识别</strong><br><br>`;
+                feedbackHTML += `<strong style="color: #d4af37; font-size: 1.2rem;">${matchedCount} / ${data.keys.length} 个要点已识别</strong><br><br>`;
                 feedbackHTML += `<span style="color: #4CAF50; font-style: italic;">回答有效，魔法封印正在消散... ✨</span></div>`;
 
                 feedback.innerHTML = feedbackHTML;
@@ -577,8 +672,8 @@ document.addEventListener("click", () => {
 
        
         function unlockBarrier(row, col) {
-             successSound.currentTime = 0;
-             successSound.play();
+            successSound.currentTime = 0;
+            successSound.play();
 
             mapLayout[row][col] = 0; 
             document.getElementById('quiz-overlay').style.display = 'none';
@@ -598,6 +693,18 @@ document.addEventListener("click", () => {
             gameState = 'VICTORY';
             player.isMoving = false;
 
+            // Compute elapsed time and save final metrics to Game Session
+            const elapsedSeconds = Math.round((Date.now() - level2StartTime) / 1000);
+            let session = loadGameSession();
+            
+            // Calculate capped score strictly out of 22 (6+4+4+4+4)
+            const level2TotalScore = Object.values(barrierScores).reduce((a, b) => a + b, 0);
+            session.level2Score = level2TotalScore;
+            session.level2Time = elapsedSeconds;
+            session.totalTime = session.level1Time + session.transitTime + elapsedSeconds;
+            session.completedStatus = true;
+            saveGameSession(session);
+
             const ratio = gameStats.pointsIdentified / gameStats.totalPossiblePoints;
             let rank, strength, improvement, style;
 
@@ -608,8 +715,8 @@ document.addEventListener("click", () => {
                 style = "卓越的关键词识别能力";
             } else if (ratio >= 0.5) {
                 rank = "🏅 远古学者";
-                strength = "对核心历史事实和区域事件有很好的记忆力。";
-                improvement = "你可以通过提供更详细的解释和更有力的支持论点来改进。";
+                strength = "对核心历史事实 and 区域事件有很好的记忆力。";
+                improvement = "你可以通过提供更详细的解释 and 更有力的支持论点来改进。";
                 style = "扎的历史记忆力";
             } else if (ratio >= 0.25) {
                 rank = "🧭 知识追寻者";
@@ -899,11 +1006,10 @@ document.addEventListener("click", () => {
             requestAnimationFrame(loop);
         }
 
+        // Initialize driver session safely on launch
+        initializeGameSession();
+
         requestAnimationFrame(loop);
     </script>
-
-
-
 </body>
-
 </html>

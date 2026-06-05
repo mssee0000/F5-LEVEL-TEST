@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>神圣圣物：终极测评报告</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans SC', 'Times New Roman', serif;
+        }
+
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #03070d, #0d131a);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            padding: 25px 20px;
+        }
+
+        #game-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        #game-container::-webkit-scrollbar-thumb {
+            background: #2a3d52;
+            border-radius: 10px;
+        }
+
+        .scroll-card {
+            background: linear-gradient(135deg, #161f2b, #0d131a);
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 25px 20px;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.15), inset 0 0 25px rgba(0, 0, 0, 0.9);
+            color: #f0f0f0;
+            margin-bottom: 20px;
+        }
+
+        .cert-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px double #d4af37;
+            padding-bottom: 15px;
+        }
+
+        .cert-title {
+            font-family: 'Cinzel', serif;
+            color: #d4af37;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .cert-subtitle {
+            font-size: 11px;
+            color: #8f7e69;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .meta-grid {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #d4bb8c;
+            margin-bottom: 25px;
+            border-bottom: 1px dashed #2a3d52;
+            padding-bottom: 10px;
+        }
+
+        .total-box {
+            text-align: center;
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .total-title {
+            font-size: 13px;
+            color: #d4bb8c;
+            margin-bottom: 5px;
+        }
+
+        .total-val {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffdf70;
+            text-shadow: 0 0 8px rgba(255, 223, 112, 0.6);
+        }
+
+        .level-stats {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #2a3d52;
+            margin-bottom: 25px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px dashed rgba(42, 61, 82, 0.5);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #f4e8c1;
+            font-weight: bold;
+        }
+
+        .stat-val {
+            color: #ffdf70;
+        }
+
+        .badge-box {
+            background: rgba(212, 175, 55, 0.03);
+            border: 1px dashed #d4af37;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .teacher-title {
+            font-weight: bold;
+            color: #d4af37;
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge-title {
+            color: #ffdf70;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 1.5px;
+        }
+
+        .badge-desc {
+            font-size: 13px;
+            color: #f4e8c1;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .answers-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #2a3d52;
+        }
+
+        .answers-title {
+            font-size: 14px;
+            color: #d4bb8c;
+            border-bottom: 1px solid #2a3d52;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .ans-item {
+            margin-bottom: 15px;
+            font-size: 12.5px;
+        }
+
+        .ans-q {
+            color: #00e5ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .ans-a {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid #d4af37;
+            padding: 8px 10px;
+            color: #fff;
+            word-break: break-all;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="scroll-card">
+        <div class="cert-header">
+            <h1 class="cert-title">测评结业证书</h1>
+            <p class="cert-subtitle">Sovereign's Relic evaluation</p>
+        </div>
+
+        <div class="meta-grid">
+            <div>探索者: <span id="meta-name" style="font-weight: bold; color: #fff;">-</span></div>
+            <div>编号: <span id="meta-id" style="color: #fff;">-</span></div>
+        </div>
+
+        <div class="total-box">
+            <p class="total-title">综合评估成绩 (Total Score)</p>
+            <div class="total-val" id="total-score">0 / 42 分</div>
+        </div>
+
+        <!-- Presenting the learning type section exactly as: Jack老师评语 -> Learning Type -> Description -->
+        <div class="badge-box">
+            <div class="teacher-title">👨‍🏫 Jack老师评语</div>
+            <div class="badge-title" id="archetype-title">正在评估中...</div>
+            <p class="badge-desc" id="archetype-desc"></p>
+        </div>
+
+        <div class="level-stats">
+            <div class="stat-row">
+                <span class="stat-label">第一关 (寻宝岛) 得分:</span>
+                <span class="stat-val" id="l1-score">0 / 10 分</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">第一关 (寻宝岛) 用时:</span>
+                <span class="stat-val" id="l1-time">0 秒</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">过渡关 (长廊试炼) 得分:</span>
+                <span class="stat-val" id="lt-score">0 / 10 分</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">过渡关 (长廊试炼) 用时:</span>
+                <span class="stat-val" id="lt-time">0 秒</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">第二关 (远古宫殿) 得分:</span>
+                <span class="stat-val" id="l2-score">0 / 22 分</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">第二关 (远古宫殿) 用时:</span>
+                <span class="stat-val" id="l2-time">0 秒</span>
+            </div>
+            <div class="stat-row" style="border-top: 1px solid #d4af37; padding-top: 10px; margin-top: 5px;">
+                <span class="stat-label" style="color: #ffdf70;">总耗时 (Total Time):</span>
+                <span class="stat-val" style="color: #ffdf70; font-weight: bold;" id="total-time">0 秒</span>
+            </div>
+        </div>
+
+        <div class="answers-box">
+            <h3 class="answers-title">历史问答表现纪录 (Sejarah Answers)</h3>
+            <div id="answers-container">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SESSION_KEY = 'sovereigns_relic_session';
+
+    function loadGameSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        return session ? JSON.parse(session) : null;
+    }
+
+    function formatTime(seconds) {
+        if (seconds >= 60) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m} 分 ${s} 秒`;
+        }
+        return `${seconds} 秒`;
+    }
+
+    function generateReport() {
+        const session = loadGameSession();
+        if (!session) return;
+
+        // Identity variables mapping
+        document.getElementById('meta-name').innerText = session.name || "未知探索者";
+        document.getElementById('meta-id').innerText = session.attemptId || "-";
+
+        // Scores bindings
+        document.getElementById('l1-score').innerText = `${session.level1Score} / 10 分`;
+        document.getElementById('l1-time').innerText = formatTime(session.level1Time);
+
+        document.getElementById('lt-score').innerText = `${session.transitScore} / 10 分`;
+        document.getElementById('lt-time').innerText = formatTime(session.transitTime);
+
+        document.getElementById('l2-score').innerText = `${session.level2Score} / 22 分`;
+        document.getElementById('l2-time').innerText = formatTime(session.level2Time);
+
+        // Dynamic total score & time calculation (without score multiplications)
+        const calculatedTotalScore = session.level1Score + session.transitScore + session.level2Score;
+        const totalDuration = session.level1Time + session.transitTime + session.level2Time;
+
+        document.getElementById('total-score').innerText = `${calculatedTotalScore} / 42 分`;
+        document.getElementById('total-time').innerText = formatTime(totalDuration);
+
+        // Score brackets evaluation
+        let title = "历史睡眠模式型 😴";
+        let desc = "历史世界的迷宫对你而言可能有些复杂。别担心，唤醒你的专注力，从基础框架开始复习，你一定能重新启航！";
+
+        if (calculatedTotalScore >= 34) {
+            title = "历史特种兵型 🪖";
+            desc = "你的历史记忆力极为出众，拥有极强的得分点捕捉能力，堪称SPM历史考场的王牌战士！";
+        } else if (calculatedTotalScore >= 25) {
+            title = "慢热考古家型 🏺";
+            desc = "你对核心事件掌握良好，能够从细节中推理出关键事实。继续深化，你将能发掘更深层的历史宝藏！";
+        } else if (calculatedTotalScore >= 15) {
+            title = "迷路小旅人型 🧭";
+            desc = "你对宏观的历史概念有初步的认知。只要稍加整理知识框架并牢记特定关键词，你一定能找到通往高分的道路！";
+        }
+
+        document.getElementById('archetype-title').innerText = title;
+        document.getElementById('archetype-desc').innerText = desc;
+
+        // Structured Answers Rendering (Bahasa Melayu Answers preserved)
+        const qContainer = document.getElementById('answers-container');
+        qContainer.innerHTML = "";
+
+        const questionsText = {
+            "Q1": "Jelaskan tindakan komunis mencetuskan huru-hara semasa Darurat. [6 markah]",
+            "Q2": "Huraikan pelaksanaan Rancangan Briggs. [4 markah]",
+            "Q3": "Jelaskan objektif penubuhan Jawatankuasa Hubungan Antara Kaum (CLC). [4 markah]",
+            "Q4": "Jelaskan latar belakang Sistem Ahli [4 markah]",
+            "Q5": "Apakah rumusan yang boleh dibuat tentang konsep kedaulatan? [4 markah]"
+        };
+
+        if (session.q1_q5_answers && session.q1_q5_answers.length > 0) {
+            session.q1_q5_answers.forEach((qObj) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'ans-item';
+
+                const questionLabel = questionsText[qObj.questionId] || qObj.questionId;
+                const answerText = qObj.answer ? qObj.answer : "( 无回答 / Tiada Jawapan )";
+
+                itemDiv.innerHTML = `
+                    <div class="ans-q">${qObj.questionId}: ${questionLabel}</div>
+                    <div class="ans-a">${answerText}</div>
+                `;
+                qContainer.appendChild(itemDiv);
+            });
+        } else {
+            qContainer.innerHTML = "<p style='color:#999; font-size:13px; text-align:center;'>暂无答题纪录 / Tiada Rekod Jawapan</p>";
+        }
+uploadToGoogleSheet(session);
+    }
+async function uploadToGoogleSheet(session) {
+
+    if (session.googleSheetUploaded) {
+        return;
+    }
+
+    try {
+
+        await fetch ("https://script.google.com/a/macros/eduhero.com.my/s/AKfycbwhwnp9PqcDkKPXnoTpJFYKGSK_8Hcc2e4NPbUYNnulsWEPNCUDybVWGkGUKkDpc_zO/exec", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                attemptId: session.attemptId,
+                date: session.date,
+                name: session.name,
+                phone: session.phone,
+                email: session.email,
+
+                level1Score: session.level1Score,
+                level1Time: session.level1Time,
+
+                transitScore: session.transitScore,
+                transitTime: session.transitTime,
+
+                level2Score: session.level2Score,
+                level2Time: session.level2Time,
+
+                totalTime: session.totalTime,
+
+                q1Answer: session.q1_q5_answers[0]?.answer || "",
+                q2Answer: session.q1_q5_answers[1]?.answer || "",
+                q3Answer: session.q1_q5_answers[2]?.answer || "",
+                q4Answer: session.q1_q5_answers[3]?.answer || "",
+                q5Answer: session.q1_q5_answers[4]?.answer || "",
+
+                learningType: document.getElementById('archetype-title').innerText,
+                completedStatus: session.completedStatus
+            })
+        });
+
+        session.googleSheetUploaded = true;
+
+        localStorage.setItem(
+            SESSION_KEY,
+            JSON.stringify(session)
+        );
+
+    } catch(error) {
+
+        console.error(error);
+
+    }
+}
+    window.onload = generateReport;
+
+</script>
+</body>
+</html>

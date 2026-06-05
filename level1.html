@@ -147,6 +147,79 @@
 
 <script>
     /* ==========================================
+       STORAGE FOUNDATION DRIVERS
+       ========================================== */
+    const SESSION_KEY = 'sovereigns_relic_session';
+    let level1StartTime = 0;
+    let level1CorrectCount = 0;
+
+    function generateAttemptId() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}${mm}${dd}`;
+        
+        let counter = parseInt(localStorage.getItem('sovereigns_relic_attempt_counter') || '0', 10);
+        counter += 1;
+        localStorage.setItem('sovereigns_relic_attempt_counter', counter);
+        
+        const xxx = String(counter).padStart(3, '0');
+        return `HIS-${dateStr}-${xxx}`;
+    }
+
+    function createDefaultSession() {
+        return {
+            attemptId: generateAttemptId(),
+            date: new Date().toISOString(),
+            completedStatus: false,
+            level1Score: 0,
+            level1Time: 0,
+            transitScore: 0,
+            transitTime: 0,
+            level2Score: 0,
+            level2Time: 0,
+            totalTime: 0,
+            q1_q5_answers: [
+                { "questionId": "Q1", "answer": "" },
+                { "questionId": "Q2", "answer": "" },
+                { "questionId": "Q3", "answer": "" },
+                { "questionId": "Q4", "answer": "" },
+                { "questionId": "Q5", "answer": "" }
+            ],
+            learningType: '',
+            name: '',
+            phone: '',
+            email: ''
+        };
+    }
+
+    function initializeGameSession() {
+        let session = localStorage.getItem(SESSION_KEY);
+        if (!session) {
+            session = createDefaultSession();
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        }
+        return JSON.parse(session);
+    }
+
+    function saveGameSession(sessionData) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    }
+
+    function loadGameSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        // Fallback: Initialize session if missing (useful for direct testing without onboarding)
+        return session ? JSON.parse(session) : initializeGameSession();
+    }
+
+    function resetGameSession() {
+        const newSession = createDefaultSession();
+        localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+        return newSession;
+    }
+
+    /* ==========================================
        AUDIO ENGINE PATCH (Web Audio API) 
        ========================================== */
     let audioCtx;
@@ -298,7 +371,13 @@
         
         // Wait for whoosh to peak, then transition
         setTimeout(() => {
-            window.location.href = 'transit.html';
+            const elapsedSeconds = Math.round((Date.now() - level1StartTime) / 1000);
+            let session = loadGameSession();
+            session.level1Score = level1CorrectCount;
+            session.level1Time = elapsedSeconds;
+            saveGameSession(session);
+
+            window.location.href = 'level1_summary.html';
         }, 800);
     }
     /* ========================================== */
@@ -320,6 +399,7 @@
     let itemsFound = 0;
 
     function startGame() {
+        level1StartTime = Date.now(); // Record start timestamp of Level 1
         initAudio(); // 初始化音频 / Initialize Audio
         startBGM();  // 播放背景音乐 / Play BGM
         document.getElementById('start-screen').style.display = 'none';
@@ -383,6 +463,7 @@
         if (selectedIndex === itemData.ans) {
             clickedBtn.classList.add('correct');
             playCorrect(); // 播放正确音效
+            level1CorrectCount++; // Track MCQ answers correct tally
         } else {
             clickedBtn.classList.add('wrong');
             // 显示正确答案
@@ -414,6 +495,9 @@
             }, 800);
         }
     }
+
+    // Safety call to bind structural state
+    loadGameSession();
 </script>
 </body>
 </html>

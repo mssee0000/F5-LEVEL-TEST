@@ -411,6 +411,78 @@
 </div>
 
 <script>
+    /* ==========================================
+       STORAGE FOUNDATION DRIVERS
+       ========================================== */
+    const SESSION_KEY = 'sovereigns_relic_session';
+    let transitStartTime = 0;
+
+    function generateAttemptId() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}${mm}${dd}`;
+        
+        let counter = parseInt(localStorage.getItem('sovereigns_relic_attempt_counter') || '0', 10);
+        counter += 1;
+        localStorage.setItem('sovereigns_relic_attempt_counter', counter);
+        
+        const xxx = String(counter).padStart(3, '0');
+        return `HIS-${dateStr}-${xxx}`;
+    }
+
+    function createDefaultSession() {
+        return {
+            attemptId: generateAttemptId(),
+            date: new Date().toISOString(),
+            completedStatus: false,
+            level1Score: 0,
+            level1Time: 0,
+            transitScore: 0,
+            transitTime: 0,
+            level2Score: 0,
+            level2Time: 0,
+            totalTime: 0,
+            q1_q5_answers: [
+                { "questionId": "Q1", "answer": "" },
+                { "questionId": "Q2", "answer": "" },
+                { "questionId": "Q3", "answer": "" },
+                { "questionId": "Q4", "answer": "" },
+                { "questionId": "Q5", "answer": "" }
+            ],
+            learningType: '',
+            name: '',
+            phone: '',
+            email: ''
+        };
+    }
+
+    function initializeGameSession() {
+        let session = localStorage.getItem(SESSION_KEY);
+        if (!session) {
+            session = createDefaultSession();
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        }
+        return JSON.parse(session);
+    }
+
+    function saveGameSession(sessionData) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    }
+
+    function loadGameSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        // Fallback: Initialize session if missing (useful for direct testing without onboarding)
+        return session ? JSON.parse(session) : initializeGameSession();
+    }
+
+    function resetGameSession() {
+        const newSession = createDefaultSession();
+        localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+        return newSession;
+    }
+
     // --- EDUCATIONAL CONTENT DATA ---
     const questions = [
         {
@@ -487,6 +559,7 @@
 
     // --- SYSTEM LOGIC ---
     function init() {
+        transitStartTime = Date.now(); // Record start timestamp of Transit Level
         spawnParticles();
         startWalkingPhase();
     }
@@ -554,54 +627,55 @@
 
     function selectAnswer(selectedIndex, correctIndex, btnElement) {
 
-    if (isAnswering) return;
+        if (isAnswering) return;
 
-    isAnswering = true;
+        isAnswering = true;
 
-    const allBtns = qOptions.querySelectorAll('.option-btn');
+        const allBtns = qOptions.querySelectorAll('.option-btn');
 
-    if (selectedIndex === correctIndex) {
+        if (selectedIndex === correctIndex) {
 
-        btnElement.classList.add('correct');
+            btnElement.classList.add('correct');
 
-        clickSound.currentTime = 0;
-        clickSound.play();
+            clickSound.currentTime = 0;
+            clickSound.play();
 
-        totalCorrect++;
-        totalScore += 10;
+            totalCorrect++;
+            totalScore += 10;
 
-    } else {
+        } else {
 
-        btnElement.classList.add('wrong');
+            btnElement.classList.add('wrong');
 
-        wrongSound.currentTime = 0;
-        wrongSound.play();
+            wrongSound.currentTime = 0;
+            wrongSound.play();
 
-        allBtns[correctIndex].classList.add('correct');
+            allBtns[correctIndex].classList.add('correct');
 
-        totalWrong++;
-    }
+            totalWrong++;
+        }
 
-    uiScore.innerText = totalScore;
-
-    setTimeout(() => {
-
-        quizLayer.classList.remove('active');
-
-        currentIndex++;
+        uiScore.innerText = totalScore;
 
         setTimeout(() => {
 
-            if(currentIndex < questions.length) {
-                startWalkingPhase();
-            } else {
-                triggerFinalGate();
-            }
+            quizLayer.classList.remove('active');
 
-        }, 600);
+            currentIndex++;
 
-    }, 1500);
-}
+            setTimeout(() => {
+
+                if(currentIndex < questions.length) {
+                    startWalkingPhase();
+                } else {
+                    triggerFinalGate();
+                }
+
+            }, 600);
+
+        }, 1500);
+    }
+
     function triggerFinalGate() {
         const gateLayer = document.getElementById('gate-layer');
         const gateLeft = document.getElementById('gate-left');
@@ -636,6 +710,13 @@
         document.getElementById('sum-wrong').innerText = totalWrong;
         document.getElementById('sum-score').innerText = totalScore;
 
+        // Save Transit metrics to localStorage Game Session
+        const elapsedSeconds = Math.round((Date.now() - transitStartTime) / 1000);
+        let session = loadGameSession();
+        session.transitScore = totalCorrect; // Store raw correct count (out of 10)
+        session.transitTime = elapsedSeconds;
+        saveGameSession(session);
+
         correctSound.currentTime = 0;
         correctSound.play();
 
@@ -644,8 +725,8 @@
     }
 
     function proceedToLevel2() {
-    window.location.href = "level2.html";
-}
+        window.location.href = "transit_summary.html";
+    }
        
     // Start Stage
     window.onload = init;
@@ -678,8 +759,6 @@ document.addEventListener("click", () => {
         bgMusic.play();
     }
 }, { once: true });
-
-// Button click sounds
 
 // Correct answer sound
 function playCorrectSound() {

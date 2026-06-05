@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>探索者信息档案</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans SC', 'Times New Roman', serif;
+        }
+
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #03070d, #0d131a);
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-card {
+            width: 90%;
+            background: linear-gradient(135deg, #161f2b, #0d131a);
+            border: 2px solid #2a3d52;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            color: #f0f0f0;
+        }
+
+        .form-title {
+            font-family: 'Cinzel', serif;
+            color: #00e5ff;
+            font-size: 22px;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            color: #d4bb8c;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a3d52;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #00e5ff;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #00e5ff, #0088ff);
+            border: none;
+            border-radius: 30px;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3);
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .error-hint {
+            font-size: 11px;
+            color: #ff3333;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="form-card">
+        <h2 class="form-title">探索者信息建档</h2>
+        
+        <form id="infoForm" onsubmit="handleFormSubmit(event)">
+            <div class="input-group">
+                <label class="input-label" for="inp-name">探索者姓名 (Name)</label>
+                <input type="text" id="inp-name" class="form-input" placeholder="请输入你的姓名" autocomplete="off" required>
+                <div class="error-hint" id="err-name">姓名不能为空</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="inp-phone">联系电话 (Phone)</label>
+                <input type="tel" id="inp-phone" class="form-input" placeholder="请输入你的联系电话" autocomplete="off" required>
+                <div class="error-hint" id="err-phone">请输入有效的联系电话</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label" for="inp-email">电子邮箱 (Email)</label>
+                <input type="email" id="inp-email" class="form-input" placeholder="请输入你的电子邮箱" autocomplete="off" required>
+                <div class="error-hint" id="err-email">请输入有效的电子邮箱</div>
+            </div>
+
+            <button type="submit" class="action-btn">确认提交</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const SESSION_KEY = 'sovereigns_relic_session';
+
+    function loadGameSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        return session ? JSON.parse(session) : null;
+    }
+
+    function saveGameSession(sessionData) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    }
+
+    // Checking validation constraints on boot
+    function checkDirectRedirect() {
+        const session = loadGameSession();
+        if (
+    session &&
+    session.completedStatus === false &&
+    session.name &&
+    session.phone &&
+    session.email
+) {
+            // Bypass page if active valid profile metrics already stored
+            window.location.href = "loading.html";
+        }
+    }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        
+        const nameVal = document.getElementById('inp-name').value.trim();
+        const phoneVal = document.getElementById('inp-phone').value.trim();
+        const emailVal = document.getElementById('inp-email').value.trim();
+
+        let valid = true;
+
+        if (!nameVal) {
+            document.getElementById('err-name').style.display = 'block';
+            valid = false;
+        } else {
+            document.getElementById('err-name').style.display = 'none';
+        }
+
+        if (!phoneVal || phoneVal.length < 5) {
+            document.getElementById('err-phone').style.display = 'block';
+            valid = false;
+        } else {
+            document.getElementById('err-phone').style.display = 'none';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailVal || !emailRegex.test(emailVal)) {
+            document.getElementById('err-email').style.display = 'block';
+            valid = false;
+        } else {
+            document.getElementById('err-email').style.display = 'none';
+        }
+
+        if (valid) {
+            const session = loadGameSession();
+            if (session) {
+                session.name = nameVal;
+                session.phone = phoneVal;
+                session.email = emailVal;
+                saveGameSession(session);
+            }
+            window.location.href = "loading.html";
+        }
+    }
+
+    window.onload = checkDirectRedirect;
+</script>
+</body>
+</html>
