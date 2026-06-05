@@ -399,6 +399,11 @@
     let itemsFound = 0;
 
     function startGame() {
+
+        console.log("RESET EXECUTED");
+
+        resetGameSession();   // 
+
         level1StartTime = Date.now(); // Record start timestamp of Level 1
         initAudio(); // 初始化音频 / Initialize Audio
         startBGM();  // 播放背景音乐 / Play BGM
