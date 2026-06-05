@@ -373,10 +373,10 @@ async function uploadToGoogleSheet(session) {
 
     console.log("UPLOAD START");
 
-    if (session.googleSheetUploaded) {
-        console.log("ALREADY UPLOADED");
-        return;
-    }
+   // if (session.googleSheetUploaded) {
+  //     console.log("ALREADY UPLOADED");
+  //     return;
+  // }
 
     try {
 
@@ -417,12 +417,12 @@ async function uploadToGoogleSheet(session) {
             })
         });
 
-        session.googleSheetUploaded = true;
+        // session.googleSheetUploaded = true;
 
-        localStorage.setItem(
-            SESSION_KEY,
-            JSON.stringify(session)
-        );
+        // localStorage.setItem(
+       //     SESSION_KEY,
+       //     JSON.stringify(session)
+       // );
 
     } catch(error) {
 
