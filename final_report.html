@@ -371,6 +371,7 @@ async function uploadToGoogleSheet(session) {
     console.log("UPLOAD START");
 
     if (session.googleSheetUploaded) {
+        console.log("ALREADY UPLOADED");
         return;
     }
 
