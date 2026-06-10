@@ -212,9 +212,211 @@
             background: rgba(212, 175, 55, 0.3);
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
+
+        /* --- MISSION CONTROL SCREEN STYLING --- */
+        #mission-control-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #070e12 0%, #020305 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 35px 20px;
+            box-sizing: border-box;
+            color: #00e5ff;
+            font-family: 'Noto Sans SC', sans-serif;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        #mission-control-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .hologram-panel {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(10, 24, 30, 0.88);
+            border: 2px solid #00e5ff;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.25), inset 0 0 20px rgba(0, 229, 255, 0.15);
+            padding: 25px 20px;
+            box-sizing: border-box;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hologram-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 229, 255, 0.04) 50%, transparent 50%), 
+                        linear-gradient(90deg, rgba(0, 229, 255, 0.04) 50%, transparent 50%);
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to bottom, rgba(0, 229, 255, 0), rgba(0, 229, 255, 0.85), rgba(0, 229, 255, 0));
+            top: 0;
+            left: 0;
+            animation: holoScanMove 4s linear infinite;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        @keyframes holoScanMove {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .mentor-img-box {
+            width: 130px;
+            height: 130px;
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .mentor-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.7));
+            animation: mentorFloating 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes mentorFloating {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        .holo-header {
+            font-size: 13px;
+            color: #8fa6b0;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            z-index: 5;
+        }
+
+        .holo-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+            z-index: 5;
+        }
+
+        .holo-content-box {
+            width: 100%;
+            min-height: 150px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 6px;
+            padding: 16px;
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e2f6f7;
+            letter-spacing: 1.5px;
+            text-align: left;
+            z-index: 5;
+            white-space: pre-line;
+        }
+
+        .briefing-btn {
+            margin-top: 25px;
+            padding: 12px 45px;
+            background: linear-gradient(135deg, #00e5ff, #0088ff);
+            color: #030506;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 5;
+        }
+
+        .briefing-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Scene 3: Warning Red Flash */
+        .warning-flash {
+            animation: warningSiren 0.5s infinite alternate;
+        }
+
+        @keyframes warningSiren {
+            0% { background: radial-gradient(circle at center, #0c080a 0%, #030102 100%); }
+            100% { background: radial-gradient(circle at center, #35080c 0%, #0c0203 100%); }
+        }
+
+        /* Floating 3D Ghost Sprite on HUD */
+        .floating-ghost {
+            position: absolute;
+            font-size: 2.8rem;
+            pointer-events: none;
+            animation: ghostFloatAcross 6s linear infinite;
+            z-index: 8;
+            opacity: 0.65;
+            filter: drop-shadow(0 0 12px rgba(138, 43, 226, 0.85));
+        }
+
+        @keyframes ghostFloatAcross {
+            0% { left: -60px; top: 40%; transform: scale(0.9) translateY(0); }
+            50% { transform: scale(1.1) translateY(-25px); }
+            100% { left: 100%; top: 35%; transform: scale(0.9) translateY(0); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- 全息战术控制台前置层 -->
+    <div id="mission-control-overlay">
+        <div style="font-size: 11px; color: #8fa6b0; letter-spacing: 4px; text-transform: uppercase;">// 探险战术系统简报 //</div>
+        
+        <div class="hologram-panel" id="holoPanel">
+            <div class="scan-line"></div>
+            
+            <!-- 第三幕漂浮黑暗灵体元素 -->
+            <div id="ghostAnim" class="floating-ghost" style="display: none;">👻</div>
+
+            <div class="mentor-img-box">
+                <img id="mentorImg" src="JACK1.png" class="mentor-img" alt="JACK" />
+            </div>
+            
+            <div class="holo-header">历史守护者联盟导师</div>
+            <div class="holo-name">万能教·JACK老师</div>
+            
+            <!-- 剧情打字机盒子 -->
+            <div class="holo-content-box" id="holoContent"></div>
+            
+            <!-- 下一步控制按键 -->
+            <button id="btnHoloNext" class="briefing-btn">继续</button>
+        </div>
+
+        <div style="font-size: 9px; color: #4e6370; letter-spacing: 1.5px;">Tactical System Status: Secure_ // LEVEL_02_INTEL</div>
+    </div>
 
     <div id="ui-layer">探索远古宫殿遗迹</div>
     <div id="progress-ui">已解除的古老结界: 0 / 5</div>
@@ -298,7 +500,8 @@
            STORAGE FOUNDATION DRIVERS
            ========================================== */
         const SESSION_KEY = 'sovereigns_relic_session';
-        let level2StartTime = Date.now();
+        // 变动：在任务简报完全结束、点击开始探险后，才重置初始化
+        let level2StartTime = 0;
         let barrierScores = { "Q1": 0, "Q2": 0, "Q3": 0, "Q4": 0, "Q5": 0 };
 
         function generateAttemptId() {
@@ -338,11 +541,13 @@
             };
         }
 
+        // 修复点：确保无会话时安全返回新会话，避免无效 JSON 转换导致全局崩溃
         function initializeGameSession() {
             let session = localStorage.getItem(SESSION_KEY);
             if (!session) {
-                session = createDefaultSession();
-                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                const defaultSession = createDefaultSession();
+                localStorage.setItem(SESSION_KEY, JSON.stringify(defaultSession));
+                return defaultSession;
             }
             return JSON.parse(session);
         }
@@ -381,7 +586,8 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let gameState = 'PLAYING';
+        // 变动：初始状态为 BRIEFING 挂起，不接受键盘和触碰动作
+        let gameState = 'BRIEFING';
         let fadeAlpha = 0;
 
         // --- OFFICIAL BAHASA MELAYU SEJARAH QUESTIONS PATCH ---
@@ -646,10 +852,21 @@
                 feedbackHTML += `<strong style="color: #d4af37; font-size: 1.2rem;">${matchedCount} / ${data.keys.length} 个要点已识别</strong><br><br>`;
                 feedbackHTML += `<span style="color: #4CAF50; font-style: italic;">回答有效，魔法封印正在消散... ✨</span></div>`;
 
-                feedback.innerHTML = feedbackHTML;
+                // 变动：追加“🔍 继续探索”黄金交互键，取消原本的自动超时关闭行为
+                feedbackHTML += `
+                    <button class="action-btn" id="btn-quiz-continue" style="margin-top: 15px; background: linear-gradient(to bottom, #d4af37, #8b6508); border: 2px solid #ffdf70; color: #fff; font-weight: bold; box-shadow: 0 4px 10px rgba(212,175,55,0.3);">
+                        🔍 继续探索
+                    </button>
+                `;
 
+                feedback.innerHTML = feedbackHTML;
                 player.checkpoint = { x: player.x, y: player.y };
-                setTimeout(() => unlockBarrier(row, col), 3000); 
+
+                // 绑定手动点击以解除结界并继续游戏的机制
+                document.getElementById('btn-quiz-continue').onclick = () => {
+                    playButtonClick(); // 伴随清脆的点按声音
+                    unlockBarrier(row, col);
+                };
             };
 
             submitBtn.onclick = checkAnswer;
@@ -715,12 +932,12 @@
                 style = "扎的历史记忆力";
             } else if (ratio >= 0.25) {
                 rank = "🧭 知识追寻者";
-                strength = "很好地掌握了宏观历史主题和基本叙事。";
-                improvement = "请专注于记忆特定关键词、准确的专业术语和地理位置。";
+                strength = "很好地掌握了宏观历史主题 and 基本叙事。";
+                improvement = "请专注于记忆特定关键词、准确的专业术语 and 地理位置。";
                 style = "良好的概念认力";
             } else {
                 rank = "🚶 初级探险家";
-                strength = "展现了探索和接触新历史概念的意愿。";
+                strength = "展现了探索 and 接触新历史概念的意愿。";
                 improvement = "请复习核心材料，并练习从文本中提取核心关键词。";
                 style = "需加强答题结构化";
             }
@@ -1001,9 +1218,272 @@
             requestAnimationFrame(loop);
         }
 
-        // Initialize driver session safely on launch
+
+        /* ==========================================
+           战术简报系统实现 (Hologram System)
+           ========================================== */
+        let currentBriefingScene = 1;
+        let typingTimer = null;
+        let mcAudioCtx = null;
+
+        // 全局一次性激活 Audio Context 并关联原有 BGM
+        function initMCAudio() {
+            if (mcAudioCtx) return;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            mcAudioCtx = new AudioContextClass();
+            console.log("Mission Control: Web Audio API context safely unlocked");
+        }
+
+        document.addEventListener('pointerdown', () => {
+            initMCAudio();
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.2;
+                bgMusic.play().catch(() => {});
+            }
+        }, { once: true });
+
+        // 音效合成公共底层
+        function playMCSynth(freqs, type, duration, vol, delayBetween = 0) {
+            try {
+                if (!mcAudioCtx || mcAudioCtx.state === 'suspended') return;
+                const now = mcAudioCtx.currentTime;
+                freqs.forEach((freq, idx) => {
+                    const osc = mcAudioCtx.createOscillator();
+                    const g = mcAudioCtx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, now + idx * delayBetween);
+                    
+                    const start = now + idx * delayBetween;
+                    g.gain.setValueAtTime(0, start);
+                    g.gain.linearRampToValueAtTime(vol, start + 0.02);
+                    g.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+                    
+                    osc.connect(g);
+                    g.connect(mcAudioCtx.destination);
+                    osc.start(start);
+                    osc.stop(start + duration + 0.05);
+                });
+            } catch(e) {}
+        }
+
+        function playScanSound() {
+            try {
+                if (!mcAudioCtx || mcAudioCtx.state === 'suspended') return;
+                const now = mcAudioCtx.currentTime;
+                const osc = mcAudioCtx.createOscillator();
+                const g = mcAudioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.8);
+                
+                g.gain.setValueAtTime(0, now);
+                g.gain.linearRampToValueAtTime(0.08, now + 0.1);
+                g.gain.linearRampToValueAtTime(0, now + 0.8);
+                
+                osc.connect(g);
+                g.connect(mcAudioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            } catch(e) {}
+        }
+
+        function playTypewriterTick() {
+            try {
+                if (!mcAudioCtx || mcAudioCtx.state === 'suspended') return;
+                const osc = mcAudioCtx.createOscillator();
+                const g = mcAudioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1800 + Math.random() * 400, mcAudioCtx.currentTime);
+                g.gain.setValueAtTime(0.003, mcAudioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, mcAudioCtx.currentTime + 0.015);
+                osc.connect(g);
+                g.connect(mcAudioCtx.destination);
+                osc.start();
+                osc.stop(mcAudioCtx.currentTime + 0.02);
+            } catch(e) {}
+        }
+
+        function playWarningAlert() {
+            try {
+                if (!mcAudioCtx || mcAudioCtx.state === 'suspended') return;
+                const now = mcAudioCtx.currentTime;
+                for (let i = 0; i < 2; i++) {
+                    const osc = mcAudioCtx.createOscillator();
+                    const g = mcAudioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    const startTime = now + i * 0.35;
+                    osc.frequency.setValueAtTime(i % 2 === 0 ? 300 : 220, startTime);
+                    
+                    g.gain.setValueAtTime(0, startTime);
+                    g.gain.linearRampToValueAtTime(0.06, startTime + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.3);
+                    
+                    osc.connect(g);
+                    g.connect(mcAudioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        function playSuccessChime() {
+            playMCSynth([392.00, 493.88, 587.33, 783.99], 'sine', 0.6, 0.08, 0.08);
+        }
+
+        function playButtonClick() {
+            playMCSynth([600, 1200], 'sine', 0.15, 0.05, 0.03);
+        }
+
+        // 简报核心引擎
+        function initMissionBriefing() {
+            console.log("Mission Briefing: Initializing sequence...");
+            gameState = 'BRIEFING';
+            runScene1();
+        }
+
+        function runHoloTypewriter(text, speed, callback) {
+            console.log("Holo Typewriter: Typing new text block...");
+            if (typingTimer) clearTimeout(typingTimer);
+            const container = document.getElementById('holoContent');
+            container.innerHTML = "";
+            let charIndex = 0;
+            
+            function type() {
+                if (charIndex < text.length) {
+                    const char = text.charAt(charIndex);
+                    if (char === '\n') {
+                        container.innerHTML += "<br>";
+                    } else {
+                        container.innerHTML += char;
+                    }
+                    charIndex++;
+                    playTypewriterTick();
+                    typingTimer = setTimeout(type, speed);
+                } else {
+                    console.log("Holo Typewriter: Text completed typing.");
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        // 第一幕：全系扫描分析
+        function runScene1() {
+            console.log("Mission Briefing: Loading Scene 1 (Temple Scan)");
+            const nextBtn = document.getElementById('btnHoloNext');
+            const content = document.getElementById('holoContent');
+            nextBtn.style.display = 'none'; // 扫描期间强制锁定交互
+            
+            let lines = [
+                "扫描远古宫殿中...",
+                "发现未知遗迹结构...",
+                "发现古老结界 ×5",
+                "发现黑暗灵体 ×4",
+                "任务分析完成"
+            ];
+            
+            let currentLineIdx = 0;
+            content.innerHTML = "";
+            
+            function revealNextLine() {
+                if (currentLineIdx < lines.length) {
+                    console.log("Mission Briefing: Scanning line " + (currentLineIdx + 1));
+                    playScanSound();
+                    
+                    const lineDiv = document.createElement('div');
+                    lineDiv.style.textShadow = '0 0 6px #00e5ff';
+                    lineDiv.style.marginBottom = '8px';
+                    content.appendChild(lineDiv);
+                    
+                    let charIdx = 0;
+                    let text = lines[currentLineIdx];
+                    
+                    function typeChar() {
+                        if (charIdx < text.length) {
+                            lineDiv.innerHTML += text.charAt(charIdx);
+                            charIdx++;
+                            playTypewriterTick();
+                            setTimeout(typeChar, 35);
+                        } else {
+                            currentLineIdx++;
+                            setTimeout(revealNextLine, 500);
+                        }
+                    }
+                    typeChar();
+                } else {
+                    console.log("Mission Briefing: Scene 1 completed successfully.");
+                    nextBtn.style.display = 'block'; // 解锁下一步按键
+                    playSuccessChime();
+                }
+            }
+            
+            revealNextLine();
+        }
+
+        function startLevel2Gameplay() {
+            console.log("Mission Briefing: Cinematic overlay faded. Level 2 clock started.");
+            gameState = 'PLAYING';
+            level2StartTime = Date.now(); // 保证玩家此时此刻点击开局时才初始化关卡倒计时
+            document.getElementById('mission-control-overlay').classList.add('hidden');
+        }
+
+        // 绑定简报步骤切换
+        const nextBtn = document.getElementById('btnHoloNext');
+        nextBtn.addEventListener('click', () => {
+            playButtonClick();
+            currentBriefingScene++;
+            console.log("Mission Briefing: Clicked Next. Navigating to Step " + currentBriefingScene);
+            
+            if (currentBriefingScene === 2) {
+                document.getElementById('mentorImg').src = "JACK3.png";
+                runHoloTypewriter(
+                    "太好了！\n我们已经成功进入远古宫殿。\n\n你的任务是：\n找到并解除5个古老结界。\n每一个结界都封印着重要历史知识。\n只有回答历史问题，才能解除封印。",
+                    22
+                );
+            } else if (currentBriefingScene === 3) {
+                document.getElementById('mentorImg').src = "JACK4.png";
+                document.getElementById('mission-control-overlay').classList.add('warning-flash');
+                document.getElementById('ghostAnim').style.display = 'block';
+                playWarningAlert();
+                
+                runHoloTypewriter(
+                    "⚠ 危险警告\n侦测到黑暗灵体活动中！\n\n千万不要碰到黑暗灵体。\n每被攻击一次：\n❤️ -1\n你只有：\n❤️❤️❤️\n三条生命值。",
+                    22
+                );
+            } else if (currentBriefingScene === 4) {
+                document.getElementById('mentorImg').src = "JACK2.png";
+                document.getElementById('mission-control-overlay').classList.remove('warning-flash');
+                document.getElementById('ghostAnim').style.display = 'none';
+                playSuccessChime();
+                
+                runHoloTypewriter(
+                    "任务目标：\n✅ 找到5个结界\n✅ 回答历史问题\n✅ 避开黑暗灵体\n✅ 成功解除全部封印\n\n图例指南：\n🔵 古老结界  👻 黑暗灵体  🧑 探险家",
+                    22
+                );
+            } else if (currentBriefingScene === 5) {
+                document.getElementById('mentorImg').src = "JACK5.png";
+                nextBtn.innerText = "🚪 开始探索";
+                
+                runHoloTypewriter(
+                    "历史探险家，\n遗迹大门已经开启。\n\n准备好迎接挑战了吗？\n祝你好运！",
+                    22
+                );
+            } else if (currentBriefingScene === 6) {
+                startLevel2Gameplay();
+            }
+        });
+
+
+        /* ==========================================
+           LAUNCH PROCESS
+           ========================================== */
+        // 1. 初始化会话
         initializeGameSession();
 
+        // 2. 挂载并启动全系任务控制简报
+        initMissionBriefing();
+
+        // 3. 运行主渲染循环
         requestAnimationFrame(loop);
     </script>
 </body>

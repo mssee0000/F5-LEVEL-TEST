@@ -71,7 +71,7 @@
             pointer-events: none;
         }
 
-        /* --- 极速引导石碑（控制在1秒以内起航） --- */
+        /* --- 极速引导石碑 --- */
         #activationGate {
             position: absolute;
             top: 0;
@@ -95,7 +95,6 @@
             pointer-events: none;
         }
 
-        /* 紧凑而富有张力的引导石碑 */
         .stone-tablet {
             width: 110px;
             height: 170px;
@@ -126,7 +125,7 @@
         }
 
         .stone-tablet:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
         }
 
         .gate-instruction {
@@ -136,7 +135,7 @@
             text-shadow: 0 0 8px rgba(255, 224, 102, 0.4);
         }
 
-        /* --- 动画舞台样式（高能提速版过渡） --- */
+        /* --- 动画舞台样式 --- */
         .stage {
             position: absolute;
             top: 0;
@@ -317,13 +316,14 @@
             pointer-events: none;
         }
 
-        /* --- 第三阶段与第四阶段：高能卷轴快速开合 --- */
+        /* --- 第三阶段：帝国卷轴 --- */
         #stage3 {
             background: radial-gradient(circle at center, #0c120f 0%, #030403 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 15px;
+            transition: background 1.5s ease;
         }
 
         .scroll-container {
@@ -334,10 +334,10 @@
             align-items: center;
             justify-content: center;
             transform-origin: center center;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 状态 1: 帝国画轴初始状态——小、微调、模糊、极速就位准备 */
+        /* 状态 1: 闭合、模糊、高空就位准备 */
         .state-scroll-init {
             width: 44px;
             transform: scale(0.01) rotate(-45deg);
@@ -345,7 +345,7 @@
             filter: blur(15px);
         }
 
-        /* 状态 2: 砸至眼前瞬间 */
+        /* 状态 2: 降临状态 */
         .state-scroll-flyin {
             width: 44px;
             transform: scale(1) rotate(0deg);
@@ -353,7 +353,7 @@
             filter: blur(0px);
         }
 
-        /* 状态 3: 黄金快速横向横张 (缩短展开时间至 0.8 秒) */
+        /* 状态 3: 卷轴横向展开 */
         .state-scroll-unfold {
             width: 92%;
             transform: scale(1) rotate(0deg);
@@ -362,7 +362,7 @@
             transition: width 0.75s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 状态 4: 完全铺平，开启文本淡入 */
+        /* 状态 4: 完全铺平 */
         .state-scroll-reveal {
             width: 92%;
             transform: scale(1) rotate(0deg);
@@ -370,7 +370,6 @@
             filter: blur(0px);
         }
 
-        /* 羊皮纸材质圣旨 */
         .scroll-paper {
             width: 100%;
             height: 100%;
@@ -385,7 +384,6 @@
             color: #382414;
         }
 
-        /* 对称卷轴 */
         .scroll-roller {
             position: absolute;
             top: -10px;
@@ -414,7 +412,6 @@
         .scroll-roller::before { top: -13px; }
         .scroll-roller::after { bottom: -13px; }
 
-        /* 内容瞬时淡入 */
         .scroll-content {
             opacity: 0;
             transition: opacity 0.35s ease;
@@ -477,7 +474,6 @@
             color: #5a2c00;
         }
 
-        /* 开始按钮 */
         .btn-container {
             margin-top: 20px;
             display: flex;
@@ -516,18 +512,151 @@
             transform: scale(0.96);
         }
 
-        /* 强白光转场覆盖层 */
+
+        /* --- 新增过渡场景：JACK老师神秘会面区 --- */
+        .mentor-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 20;
+            transition: opacity 1.2s ease, visibility 1.2s;
+            padding: 25px;
+            background: radial-gradient(circle at center, rgba(10, 16, 13, 0.96) 0%, rgba(2, 4, 3, 0.99) 100%);
+        }
+
+        .mentor-stage.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mentor-portrait-box {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mentor-portrait {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.75));
+            animation: mentorFloating 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes mentorFloating {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        .mentor-info-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .mentor-title-sub {
+            font-size: 0.9rem;
+            color: #ffd700;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+        }
+
+        .mentor-title-main {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .mentor-dialogue-panel {
+            width: 85%;
+            min-height: 85px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 16px;
+            border-radius: 4px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #e2d7c5;
+            text-align: center;
+            letter-spacing: 2.5px;
+            text-shadow: 0 0 6px rgba(226, 215, 197, 0.15);
+        }
+
+
+        /* --- 新增过渡场景：目标区域锁屏 --- */
+        .terminal-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 25;
+            transition: opacity 0.8s ease, visibility 0.8s;
+            padding: 30px;
+            background: radial-gradient(circle at center, #060c09 0%, #010202 100%);
+        }
+
+        .terminal-stage.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .term-log-line {
+            font-size: 1.15rem;
+            margin-bottom: 22px;
+            color: #a3b899;
+            text-shadow: 0 0 8px rgba(163, 184, 153, 0.25);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.5s ease;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .term-log-line.printed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .term-log-line .highlight-gold-text {
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.55);
+        }
+
+
+        /* --- 全屏金色膨胀闪光覆盖膜 --- */
         #flashOverlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #ffffff;
+            background: radial-gradient(circle, rgba(255, 215, 0, 1) 0%, rgba(255, 251, 240, 1) 50%, rgba(255, 255, 255, 1) 100%);
             opacity: 0;
             z-index: 200;
             pointer-events: none;
-            transition: opacity 0.4s ease-in;
+            transition: opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         #flashOverlay.flash {
@@ -538,10 +667,13 @@
 <body>
 
     <div class="game-viewport" id="viewport">
+        <!-- 金色漂浮粒子层 -->
         <canvas id="particleCanvas"></canvas>
+        
+        <!-- 全屏转场金色高能闪光层 -->
         <div id="flashOverlay"></div>
 
-        <!-- 极速唤醒石碑层 (1秒内触发) -->
+        <!-- 开始前的触碰石碑仪式 -->
         <div id="activationGate">
             <div class="stone-tablet" id="tablet"></div>
             <p class="gate-instruction">触摸石碑 · 即刻唤醒</p>
@@ -559,7 +691,7 @@
             </div>
         </div>
 
-        <!-- 第二阶段：废墟与探险家剪影 -->
+        <!-- 第二阶段：古庙探险家剪影 -->
         <div class="stage" id="stage2">
             <div class="parallax-layer" id="parallaxSky">
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:100%;">
@@ -590,7 +722,7 @@
             <div class="stage2-fog"></div>
         </div>
 
-        <!-- 第三阶段：高能画卷空降展开 -->
+        <!-- 第三阶段：画卷引入展示 -->
         <div class="stage" id="stage3">
             <div class="scroll-container state-scroll-init" id="cinematicScroll">
                 <div class="scroll-roller scroll-roller-left"></div>
@@ -629,6 +761,29 @@
                 <div class="scroll-roller scroll-roller-right"></div>
             </div>
         </div>
+
+        <!-- 新增过渡幕：JACK老师神秘现身 -->
+        <div class="mentor-stage" id="mentorStage">
+            <div class="mentor-portrait-box">
+                <!-- 仅使用 JACK1.png 呈现智慧导师形象 -->
+                <img src="JACK1.png" alt="JACK老师" class="mentor-portrait">
+            </div>
+            <div class="mentor-info-header">
+                <p class="mentor-title-sub">历史守护者联盟导师</p>
+                <h3 class="mentor-title-main">万能教·JACK老师</h3>
+            </div>
+            <div class="mentor-dialogue-panel" id="mentorDialogueText"></div>
+        </div>
+
+        <!-- 新增过渡幕：目标档案数据锁定 -->
+        <div class="terminal-stage" id="terminalStage">
+            <div id="termLog1" class="term-log-line">任务已接受</div>
+            <div id="termLog2" class="term-log-line">正在锁定目标区域...</div>
+            <div id="termLog3" class="term-log-line">目的地：<span class="highlight-gold-text">寻宝岛</span></div>
+            <div id="termLog4" class="term-log-line">历史档案已解锁</div>
+            <div id="termLog5" class="term-log-line">正在进入第一关...</div>
+        </div>
+
     </div>
 
     <script>
@@ -947,9 +1102,64 @@
             setTimeout(onDone, 450);
         }
 
+        // 新增：打字机机打滴答微音效
+        function playTypewriterTick() {
+            try {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1600 + Math.random() * 300, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.004, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.02);
+                osc.connect(g);
+                g.connect(masterGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.03);
+            } catch(e) {}
+        }
+
+        // 新增：数据锁定微音效
+        function playTerminalTick() {
+            try {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.12);
+                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+                osc.connect(g);
+                g.connect(masterGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.13);
+            } catch(e) {}
+        }
+
+        // 新增：导师登场神圣钟罄音
+        function playMentorAppear() {
+            try {
+                if (!audioCtx || audioCtx.state === 'suspended') return;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.0);
+                g.gain.setValueAtTime(0, audioCtx.currentTime);
+                g.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.4);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+                osc.connect(g);
+                g.connect(masterGain);
+                if (delayNode) g.connect(delayNode);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.3);
+            } catch(e) {}
+        }
+
 
         /************************************************************
-         * 3. 极速状态切换机制
+         * 3. 开场镜头时间轴状态机
          ************************************************************/
         const viewport = document.getElementById('viewport');
         const tablet = document.getElementById('tablet');
@@ -961,6 +1171,9 @@
         const cinematicScroll = document.getElementById('cinematicScroll');
         const btnStart = document.getElementById('btnStart');
         const flashOverlay = document.getElementById('flashOverlay');
+        const mentorStage = document.getElementById('mentorStage');
+        const mentorDialogueText = document.getElementById('mentorDialogueText');
+        const terminalStage = document.getElementById('terminalStage');
 
         tablet.addEventListener('click', () => {
             initAudio();
@@ -969,16 +1182,13 @@
         });
 
         function startExcitingCinematic() {
-            
             // --- Stage 1: 时空传送门开启 (t = 0s) ---
             stage1.classList.add('active');
             particleMode = 'spiral';
             
-            // 快速剧情句字幕投射
             narrativeText.textContent = "在历史长河的深处……";
             narrativeText.classList.add('show');
 
-            // 0.4s后切第二句，保持情绪连续无空档
             setTimeout(() => {
                 narrativeText.classList.remove('show');
                 setTimeout(() => {
@@ -994,24 +1204,21 @@
                 stage2.classList.add('active');
                 particleMode = 'drift';
 
-                // 高速透视缩放
                 document.getElementById('parallaxSky').style.transform = 'scale(1.08) translateY(5px)';
                 document.getElementById('parallaxMid').style.transform = 'scale(1.12) translateY(10px)';
                 document.getElementById('parallaxFore').style.transform = 'scale(1.15) translateY(13px)';
             }, 1000);
 
-            // --- Stage 3: 画卷呼啸坠落与砸碎屏 (t = 1.4s) ---
+            // --- Stage 3: 画卷空降展开 (t = 1.4s) ---
             setTimeout(() => {
                 stage2.classList.remove('active');
                 stage3.classList.add('active');
 
-                // 画卷初始瞬间高空进入 (Whoosh!)
                 setTimeout(() => {
                     cinematicScroll.className = "scroll-container state-scroll-flyin";
                     playWhooshSFX();
                 }, 50);
 
-                // 砸落屏幕并触发震动效果 (Slam!) (t = 1.8s)
                 setTimeout(() => {
                     viewport.classList.add('camera-shake');
                     playSlamSFX();
@@ -1021,13 +1228,11 @@
                     }, 350);
                 }, 400);
 
-                // 极速画卷横向物理延展 (Unfold!) (t = 2.1s)
                 setTimeout(() => {
                     cinematicScroll.className = "scroll-container state-scroll-unfold";
                     playUnfoldChimesSFX();
                 }, 750);
 
-                // 呈现墨卷全部内容与按钮 (Reveal!) (t = 2.9s)
                 setTimeout(() => {
                     cinematicScroll.className = "scroll-container state-scroll-reveal";
                 }, 1500);
@@ -1035,24 +1240,114 @@
             }, 1400);
         }
 
-        // --- Stage 4: 点击高能跳转 ---
+
+        /************************************************************
+         * 4. 新增：电影级导师及数据锁定过度时序控制 (Sequencer)
+         ************************************************************/
+
+        // 打字机运行控制器
+        function runDialogueTypewriter(element, textList, listIdx, onComplete) {
+            if (listIdx >= textList.length) {
+                if (onComplete) onComplete();
+                return;
+            }
+            
+            let curText = textList[listIdx];
+            let charIdx = 0;
+            
+            if (listIdx > 0) {
+                element.innerHTML += "<br>";
+            }
+
+            function writeChar() {
+                if (charIdx < curText.length) {
+                    element.innerHTML += curText.charAt(charIdx);
+                    charIdx++;
+                    playTypewriterTick();
+                    setTimeout(writeChar, 85);
+                } else {
+                    setTimeout(() => {
+                        runDialogueTypewriter(element, textList, listIdx + 1, onComplete);
+                    }, 500);
+                }
+            }
+            writeChar();
+        }
+
+        // 目标区域诊断数据锁定流
+        function runTerminalSequence() {
+            const lines = [
+                { id: 'termLog1', delay: 0 },
+                { id: 'termLog2', delay: 1000 },
+                { id: 'termLog3', delay: 2000 },
+                { id: 'termLog4', delay: 3000 },
+                { id: 'termLog5', delay: 4000 }
+            ];
+
+            lines.forEach(line => {
+                setTimeout(() => {
+                    const el = document.getElementById(line.id);
+                    el.classList.add('printed');
+                    playTerminalTick();
+
+                    // 最终进入：金色膨胀强光，重定向至 level1.html
+                    if (line.id === 'termLog5') {
+                        setTimeout(() => {
+                            flashOverlay.classList.add('flash');
+                            setTimeout(() => {
+                                window.location.href = 'level1.html';
+                            }, 700);
+                        }, 1200);
+                    }
+                }, line.delay);
+            });
+        }
+
+        // 开始探险核心动作
         btnStart.addEventListener('mouseenter', playHoverChime);
 
         btnStart.addEventListener('click', () => {
             btnStart.disabled = true;
-            btnStart.style.opacity = '0.6';
+            btnStart.style.opacity = '0.5';
 
+            // 触发圣物发光琶音
             playStartFlourish(() => {
-                // 卷轴合拢并进行急速白光爆发转场
+                
+                // --- STEP 1: 帝国圣旨缓缓合拢收拢，金砂粒子继续游动，背景极暗微调 ---
                 cinematicScroll.className = "scroll-container state-scroll-flyin";
+                stage3.style.background = "radial-gradient(circle at center, #040605 0%, #000101 100%)";
 
                 setTimeout(() => {
-                    flashOverlay.classList.add('flash');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'level1.html';
-                    }, 400);
-                }, 150);
+                    // 关闭卷轴场景，进入杰克老师登场
+                    stage3.classList.remove('active');
+
+                    // --- STEP 2: JACK1.png 以呼吸及金色 Drop Shadow 形式缓缓淡入 ---
+                    mentorStage.classList.add('active');
+                    playMentorAppear();
+
+                    // --- STEP 3: JACK老师台词打字机启动，无任何玩法剧透，保留神秘暗示 ---
+                    mentorDialogueText.innerHTML = "";
+                    runDialogueTypewriter(
+                        mentorDialogueText, 
+                        ["欢迎你，探险家。", "历史正在等待你的发现。"], 
+                        0, 
+                        () => {
+                            // 导师陈述完毕后驻留 2 秒
+                            setTimeout(() => {
+                                // 导师温和退场
+                                mentorStage.classList.remove('active');
+
+                                // --- STEP 4: 1秒后开启终极诊断锁定 ---
+                                setTimeout(() => {
+                                    terminalStage.classList.add('active');
+                                    runTerminalSequence();
+                                }, 1000);
+
+                            }, 2000);
+                        }
+                    );
+
+                }, 850); // 预留卷轴向内缩小的动画闭合过渡时长
             });
         });
     </script>
