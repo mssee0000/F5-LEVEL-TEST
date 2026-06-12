@@ -144,7 +144,7 @@
         <div class="metric-group">
             <div class="metric-item">
                 <div class="metric-label">通关得分</div>
-                <div class="metric-value" id="val-score">0 / 10</div>
+                <div class="metric-value" id="val-score">0 / 5</div>
             </div>
             <div class="metric-item">
                 <div class="metric-label">所用时间</div>
@@ -179,7 +179,7 @@
     function initSummary() {
         const session = loadGameSession();
         if (session) {
-            document.getElementById('val-score').innerText = `${session.level1Score} / 10`;
+            document.getElementById('val-score').innerText = `${session.level1Score} / 5`;
             
             // Format time representation
             const timeVal = session.level1Time;

@@ -125,9 +125,9 @@
         
         .action-btn:active { transform: scale(0.95); }
 
-        /* --- 电影级开场样式 --- */
+        /* --- 电影级开场样式 (两栏优化排版) --- */
         #mentor-npc {
-            position: absolute; bottom: -10px; right: 10px; width: 145px; height: auto;
+            position: absolute; bottom: -5px; right: 10px; width: 110px; height: auto;
             z-index: 205; opacity: 0; transform: translateY(30px);
             transition: opacity 1s ease, transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             pointer-events: none;
@@ -139,14 +139,86 @@
             animation: npcFloat 4s ease-in-out infinite alternate;
         }
 
+        /* 优化位置避免与导师卡片重合 */
         #dialogue-box {
-            position: absolute; bottom: 25px; left: 15px; right: 15px;
-            background: rgba(12, 20, 16, 0.95); border: 1px solid rgba(212, 175, 55, 0.5);
-            border-radius: 6px; padding: 15px; z-index: 210; opacity: 0;
+            position: absolute; bottom: 25px; left: 12px; right: 130px;
+            background: rgba(12, 20, 16, 0.96); border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 6px; padding: 12px; z-index: 210; opacity: 0;
             transform: translateY(20px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
         }
         #dialogue-box.visible { opacity: 1; transform: translateY(0); }
+
+        /* 滚屏及溢出指示辅助样式 */
+        .dialogue-text-wrapper {
+            position: relative;
+            margin-top: 4px;
+        }
+        #dialogue-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e2d7c5;
+            letter-spacing: 1px;
+            max-height: 85px;
+            overflow-y: auto;
+            padding-right: 6px;
+            scroll-behavior: smooth;
+        }
+        /* 游戏风格：暗黑幻想金色滚动条 */
+        #dialogue-text::-webkit-scrollbar {
+            width: 4px;
+        }
+        #dialogue-text::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 2px;
+        }
+        #dialogue-text::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #d4af37, #8b6508);
+            border-radius: 2px;
+            border: 1px solid rgba(255, 223, 112, 0.3);
+        }
+        /* 底端溢出遮罩，暗示还有后续内容 */
+        .dialogue-fade-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 15px;
+            background: linear-gradient(to top, rgba(12, 20, 16, 0.98), transparent);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .dialogue-fade-overlay.visible {
+            opacity: 1;
+        }
+        /* ⬇ 滑动提示气泡样式 */
+        .dialogue-scroll-indicator {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #ffdf70;
+            background: rgba(12, 20, 16, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 2px 8px;
+            border-radius: 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            white-space: nowrap;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            animation: bounceIndicator 1.5s infinite alternate;
+        }
+        .dialogue-scroll-indicator.visible {
+            opacity: 1;
+        }
+        @keyframes bounceIndicator {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(3px); }
+        }
 
         /* 帝国横向藏宝图/卷轴样式 */
         .briefing-scroll {
@@ -224,7 +296,11 @@
         <div id="dialogue-box">
             <div style="font-size: 11px; color: #ffd700; letter-spacing: 1px; margin-bottom: 3px;">历史守护者联盟导师</div>
             <div style="font-size: 14px; color: #ffffff; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px;">万能教·JACK老师</div>
-            <div id="dialogue-text" style="font-size: 13px; line-height: 1.5; color: #e2d7c5; letter-spacing: 1px; min-height: 54px;"></div>
+            <div class="dialogue-text-wrapper">
+                <div id="dialogue-text"></div>
+                <div id="dialogue-fade-overlay" class="dialogue-fade-overlay"></div>
+            </div>
+            <div id="dialogue-scroll-indicator" class="dialogue-scroll-indicator">⬇ 滑动阅读更多</div>
         </div>
 
         <!-- 横向卷轴藏宝图 -->
@@ -655,17 +731,12 @@
     }
     /* ========================================== */
 
-    // 游戏数据 (包含本地图片路径与Sejarah问题)
+    // 游戏数据 (5 Items & 5 Questions covering structural map coordinates nicely)
     const gameData = [
         { id: 'key', src: 'golden-key.png', x: 20, y: 85, q: "Apakah maksud Sovereignty dalam bahasa Inggeris?", opts: ["Negara berhak menentukan sempadan", "Negara bersatu menentang penceroboh", "Negara berkuasa penuh dalam pentadbiran", "Negara berjuang menuntut kemerdekaan"], ans: 2 },
-        { id: 'hat', src: 'pirate-hat.png', x: 75, y: 80, q: "Bagaimanakah kedudukan raja ditentukan mengikut kedaulatan tradisional?", opts: ["Kesetiaan rakyat", "Kestabilan politik", "Kekuatan ketenteraan", "Keunggulan perlembagaan"], ans: 0 },
-        { id: 'ruby', src: 'ruby-gem.png', x: 45, y: 72, q: "Senarai berikut berkaitan dengan negara persekutuan. Raja Berperlembagaan & X. Apakah X?", opts: ["Sistem Republik", "Demokrasi mutlak", "Demokrasi Berparlimen", "Pemerintahan raja berkuasa mutlak"], ans: 2 },
         { id: 'coin', src: 'pirate-coin.png', x: 80, y: 55, q: "Apakah perundangan yang menjadi asas kepada sistem peraturan negara kita?", opts: ["Undang-undang adat", "Hukum Kanun Melaka", "Undang-undang syariah", "Perlembagaan Persekutuan"], ans: 3 },
-        { id: 'skull', src: 'skull.png', x: 25, y: 45, q: "Apakah peranan utama Yang di-Pertuan Agong dalam pentadbiran negara?", opts: ["Ketua Kerajaan", "Ketua Institusi Beraja", "Ketua Utama Negara", "Ketua Pentadbir Negara"], ans: 2 },
         { id: 'lantern', src: 'lantern.png', x: 60, y: 35, q: "Dasar Pembangunan Ekonomi dibentuk selepas merdeka. Apakah matlamat yang hendak dicapai?", opts: ["Mentransformasikan ekonomi", "Meningkat taraf hidup rakyat", "Memantapkan peranan FELDA", "Memperkenalkan pertanian dagangan"], ans: 1 },
-        { id: 'compass', src: 'compass.png', x: 75, y: 28, q: "Mengapakah Perlembagaan Persekutuan memperuntukkan pengagihan kuasa?", opts: ["Menggalakkan kerjasama", "Memudahan pemerintahan", "Mewujudkan pentadbiran yang berkesan", "Memastikan dasar dilaksanakan"], ans: 2 },
         { id: 'sword', src: 'curved-sword.png', x: 35, y: 18, q: "Yang manakah berkaitan dengan pengiktirafan PBB terhadap sesebuah negara?", opts: ["Kedaulatan tradisional", "Kedaulatan moden", "Kedaulatan undang-undang", "Kedaulatan antarabangsa"], ans: 3 },
-        { id: 'bottle', src: 'glass-bottle.png', x: 75, y: 12, q: "Apakah maksud Daulah dalam Bahasa Arab?", opts: ["Keagungan", "Ketinggian", "Kekuasaan tertinggi", "Kuasa pemerintahan"], ans: 3 },
         { id: 'chest', src: 'treasure-chest.png', x: 50, y: 6, q: "Tokoh X: 'Kedaulatan dibina berdasarkan prinsip kebebasan dan keadilan'. Siapakah X?", opts: ["Aristotle", "Jean Bodin", "Ibn Khaldun", "Tunku Abdul Rahman"], ans: 2 }
     ];
 
@@ -678,11 +749,37 @@
         triggerCinematicOpening();
     });
 
+    // 滚动条提示与遮罩检测器
+    function updateScrollIndicator(element) {
+        const indicator = document.getElementById('dialogue-scroll-indicator');
+        const overlay = document.getElementById('dialogue-fade-overlay');
+        if (!element || !indicator) return;
+
+        const isOverflowed = element.scrollHeight > element.clientHeight;
+        const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 6;
+
+        if (isOverflowed && !isAtBottom) {
+            indicator.classList.add('visible');
+            if (overlay) overlay.classList.add('visible');
+        } else {
+            indicator.classList.remove('visible');
+            if (overlay) overlay.classList.remove('visible');
+        }
+    }
+
     function triggerCinematicOpening() {
         initAudio(); 
         startBGM();  
 
-        // Step 2: JACK1.png 缓缓浮现在屏幕右下角
+        // 绑定对话框滚动监视器
+        const diagTextEl = document.getElementById('dialogue-text');
+        if (diagTextEl) {
+            diagTextEl.addEventListener('scroll', () => {
+                updateScrollIndicator(diagTextEl);
+            });
+        }
+
+        // Step 2: JACK1.png 缓缓浮现在屏幕右下角 (优化后并列，不遮挡)
         const mentor = document.getElementById('mentor-npc');
         mentor.classList.add('visible');
         playMentorAppear();
@@ -697,7 +794,7 @@
                 "欢迎来到寻宝岛，探险家。",
                 "这里隐藏着许多失落的历史文物。",
                 "你需要找到它们，",
-                "并回答相关的历史问题。"
+                "并回答相关的历史问题。守护好历史的荣光！"
             ];
 
             runTypewriter(textEl, lines, 0, () => {
@@ -716,12 +813,12 @@
                         playUnfoldChimesSFX();
                     }, 900);
 
-                }, 1400);
+                }, 2200); // 预留时间供学生翻阅长对话
             });
         }, 1000);
     }
 
-    // 递归型打字机辅助函数
+    // 递归型打字机辅助函数 (新增自动滚动到最底部及提示更新)
     function runTypewriter(element, linesArray, lineIdx, onDone) {
         if (lineIdx >= linesArray.length) {
             if (onDone) onDone();
@@ -736,6 +833,11 @@
                 element.innerHTML += curLine.charAt(charIdx);
                 charIdx++;
                 playTypewriterTick();
+
+                // 强制文本滚动始终跟随光标
+                element.scrollTop = element.scrollHeight;
+                updateScrollIndicator(element);
+
                 setTimeout(writeChar, 80);
             } else {
                 setTimeout(() => {

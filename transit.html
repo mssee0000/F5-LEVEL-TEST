@@ -357,7 +357,7 @@
     <div id="hud">
         <div class="hud-title">远古知识长廊 (知识试炼)</div>
         <div class="hud-stats">
-            <div>进度: <span id="ui-progress">1/10</span></div>
+            <div>进度: <span id="ui-progress">1/5</span></div>
             <div>分数: <span id="ui-score">0</span></div>
         </div>
     </div>
@@ -518,10 +518,10 @@
         return newSession;
     }
 
-    // --- EDUCATIONAL CONTENT DATA ---
+    // --- EDUCATIONAL CONTENT DATA (Reduced to exactly 5 questions) ---
     const questions = [
         {
-            q: "Apakah ciri-ciri kedaulatan tradisional?<br><br>I Wujud sejak tamadun awal manusia<br>II Pemerintahan berkuasa mutlak<br>III Dikaitkan dengan hak rakyat dan kerajaan<br>IV Mengamalkan sistem Demokrasi Berparlimen",
+            q: "Apakah ciri-ciri kedaulatan tradisional?<br><br>I Wujud sejak tamadun awal manusia<br>II Pemerintahan berkuasa mutlak<br>III Dikaitkan dengan hak rakyat and kerajaan<br>IV Mengamalkan sistem Demokrasi Berparlimen",
             options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
             correct: 0 // A
         },
@@ -544,31 +544,6 @@
             q: "Kedaulatan memberikan hak kepada Malaysia untuk menggubal dasar luar tanpa pengaruh mana-mana pihak.<br>Apakah kepentingan negara menggubal dasar luar?<br><br>I Menjalin persahabatan<br>II Mewujudkan kerjasama<br>III Memperkasa angkatan pertahanan<br>IV Mengukuhkan kedudukan kerajaan",
             options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
             correct: 0 // A
-        },
-        {
-            q: "Mengapakah kerajaan mewujudkan dasar pembangunan ekonomi?",
-            options: ["A. Meningkatkan perdagangan", "B. Mengeksploitasi kekayaan negara", "C. Menggalakkan pelaburan syarikat asing", "D. Mengagihkan sumber kekayaan secara adil"],
-            correct: 3 // D
-        },
-        {
-            q: "Maklumat berikut berkaitan dengan langkah dalam mempertahankan kedaulatan negara:<br><i>“Mengekalkan perpaduan kaum”</i><br><br>Antara berikut, yang manakah langkah yang telah dilaksanakan oleh pihak pemerintah Malaysia?<br><br>I Menggubal dasar dan undang-undang<br>II Memastikan agihan sumber kekayaan secara adil<br>III Melaksanakan undang-undang menurut perlembagaan<br>IV Memastikan keberkesanan pelaksanaan dasar pendidikan",
-            options: ["A. I dan II", "B. I dan IV", "C. II dan III", "D. III dan IV"],
-            correct: 0 // A
-        },
-        {
-            q: "Apakah peranan rakyat bagi mengekalkan perpaduan rakyat berbilang bangsa di Malaysia?",
-            options: ["A. Mengamalkan prinsip Rukun Negara", "B. Merangka program ke arah memupuk perpaduan", "C. Menggubal dasar berkaitan perpaduan", "D. Memastikan keberkesanan pelaksanaan dasar"],
-            correct: 0 // A
-        },
-        {
-            q: "Mengapakah sambutan Hari Kebangsaan diadakan dengan meriah?",
-            options: ["A. Menjamin keamanan", "B. Memupuk patriotisme", "C. Mendapat pengiktirafan", "D. Menyemai semangat kerjasama"],
-            correct: 1 // B
-        },
-        {
-            q: "Apakah peranan rakyat dalam mengukuhkan pertahanan negara?",
-            options: ["A. Menggubal undang-undang", "B. Mengadakan perjanjian pertahanan", "C. Memodenkan aset ketenteraan", "D. Menganggotai pasukan keselamatan"],
-            correct: 3 // D
         }
     ];
 
@@ -619,8 +594,8 @@
     }
 
     function startWalkingPhase() {
-        // Darken environment slightly as player goes deeper
-        const depthDarkness = 0.9 - (currentIndex * 0.05);
+        // Darken environment slightly as player goes deeper (re-scaled for 5 steps)
+        const depthDarkness = 0.9 - (currentIndex * 0.1);
         corridorWalls.style.backgroundImage = `
             linear-gradient(90deg, rgba(0,0,0,${depthDarkness}) 0%, transparent 20%, transparent 80%, rgba(0,0,0,${depthDarkness}) 100%),
             linear-gradient(0deg, rgba(0,229,255,0.05) 0%, transparent 50%)`;
@@ -644,7 +619,7 @@
         isAnswering = false;
         const currentQ = questions[currentIndex];
         
-        uiProgress.innerText = (currentIndex + 1) + "/10";
+        uiProgress.innerText = (currentIndex + 1) + "/5";
         qNumber.innerText = (currentIndex + 1);
         qText.innerHTML = currentQ.q;
         qOptions.innerHTML = '';
@@ -676,7 +651,7 @@
             clickSound.play();
 
             totalCorrect++;
-            totalScore += 10;
+            totalScore += 1; // Updated step score (worth 1 each for a maximum score of 5)
 
         } else {
 

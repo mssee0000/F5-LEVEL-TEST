@@ -234,7 +234,7 @@
 
         <div class="total-box">
             <p class="total-title">综合评估成绩 (Total Score)</p>
-            <div class="total-val" id="total-score">0 / 42 分</div>
+            <div class="total-val" id="total-score">0 / 47 分</div>
         </div>
 
         <!-- 学习类型评价 -->
@@ -248,11 +248,15 @@
         <div class="level-stats">
             <div class="stat-row">
                 <span class="stat-label">第一关 (寻宝岛) 得分:</span>
-                <span class="stat-val" id="l1-score">0 / 10 分</span>
+                <span class="stat-val" id="l1-score">0 / 5 分</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">过渡关 (长廊试炼) 得分:</span>
-                <span class="stat-val" id="lt-score">0 / 10 分</span>
+                <span class="stat-val" id="lt-score">0 / 5 分</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">测评问卷 (学力分析) 得分:</span>
+                <span class="stat-val" id="assessment-score">0 / 15 分</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">第二关 (远古宫殿) 得分:</span>
@@ -415,28 +419,32 @@
         document.getElementById('meta-name').innerText = session.name || "未知探索者";
         document.getElementById('meta-id').innerText = session.attemptId || "-";
 
-        // Scores bindings
-        document.getElementById('l1-score').innerText = `${session.level1Score} / 10 分`;
-        document.getElementById('lt-score').innerText = `${session.transitScore} / 10 分`;
+        // Score restoration logic
+        let aScore = session.assessmentScore || 10;
+
+        // Scores bindings (Level 1: 5 max, Transit: 5 max, Assessment: 15 max, Level 2: 22 max)
+        document.getElementById('l1-score').innerText = `${session.level1Score} / 5 分`;
+        document.getElementById('lt-score').innerText = `${session.transitScore} / 5 分`;
+        document.getElementById('assessment-score').innerText = `${aScore} / 15 分`;
         document.getElementById('l2-score').innerText = `${session.level2Score} / 22 分`;
 
-        // Dynamic total score calculation (without score multiplications)
-        const calculatedTotalScore = session.level1Score + session.transitScore + session.level2Score;
+        // Dynamic total score calculation (Total score maximum updated to 47)
+        const calculatedTotalScore = session.level1Score + session.transitScore + aScore + session.level2Score;
         const totalDuration = session.level1Time + session.transitTime + session.level2Time;
 
-        document.getElementById('total-score').innerText = `${calculatedTotalScore} / 42 分`;
+        document.getElementById('total-score').innerText = `${calculatedTotalScore} / 47 分`;
 
-        // Score brackets evaluation
+        // Score brackets evaluation (Scaled proportionally to new 47 maximum score)
         let title = "历史睡眠模式型 😴";
         let desc = "历史世界的迷宫对你而言可能有些复杂。别担心，唤醒你的专注力，从基础框架开始复习，你一定能重新启航！";
 
-        if (calculatedTotalScore >= 34) {
+        if (calculatedTotalScore >= 38) {
             title = "历史特种兵型 🪖";
             desc = "你的历史记忆力极为出众，拥有极强的得分点捕捉能力，堪称SPM历史考场的王牌战士！";
-        } else if (calculatedTotalScore >= 25) {
+        } else if (calculatedTotalScore >= 28) {
             title = "慢热考古家型 🏺";
             desc = "你对核心事件掌握良好，能够从细节中推理出关键事实。继续深化，你将能发掘更深层的历史宝藏！";
-        } else if (calculatedTotalScore >= 15) {
+        } else if (calculatedTotalScore >= 17) {
             title = "迷路小旅人型 🧭";
             desc = "你对宏观的历史概念有初步的认知。只要稍加整理知识框架并牢记特定关键词，你一定能找到通往高分的道路！";
         }
@@ -445,7 +453,6 @@
         document.getElementById('archetype-desc').innerText = desc;
 
         // 根据评估页存储的 `assessmentScore` (5~15) 与 attemptId 种子进行稳定的单题分数还原
-        let aScore = session.assessmentScore || 10;
         let seed = 0;
         const seedStr = session.name || "explorer";
         for (let i = 0; i < seedStr.length; i++) {
@@ -471,8 +478,8 @@
             q1 = qArray[0]; q2 = qArray[1]; q3 = qArray[2]; q4 = qArray[3]; q5 = qArray[4];
         }
 
-        // 计算六维指标（全部映射到 10 分制）
-        const val1 = ((session.level1Score + session.transitScore + session.level2Score) / 42) * 10; // 历史理解
+        // 计算六维指标（全部映射到 10 分制，val1 denominator updated to 32 to reflect 5+5+22=32）
+        const val1 = ((session.level1Score + session.transitScore + session.level2Score) / 32) * 10; // 历史理解
         const val2 = ((q3 + q4) / 6) * 10; // 记忆能力
         const val3 = (q1 / 3) * 10;        // 题目理解
         const val4 = (q2 / 3) * 10;        // KBAT分析
@@ -511,10 +518,10 @@
 
         document.getElementById('teacher-learning-analysis').innerHTML = analysisHTML;
 
-        // 变动：动态拼接并转义完整的 WhatsApp 评估档案预约咨询报表
+        // 变动：动态拼接并转义完整的 WhatsApp 评估档案预约咨询报表 (Total score denominator updated to 47)
         const pName = session.name || "未知探索者";
         const pLearningType = title;
-        const pTotalScore = `${calculatedTotalScore} / 42 分`;
+        const pTotalScore = `${calculatedTotalScore} / 47 分`;
         const pStrongest = adviceMapping[maxIdx].name;
         const pWeakest = adviceMapping[minIdx].name;
 
