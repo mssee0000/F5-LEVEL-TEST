@@ -431,39 +431,33 @@
         </div>
     </div>
 
+    <!-- 重新引入并优化后的通关卡片（victory-overlay） -->
     <div id="victory-overlay" class="overlay">
         <div class="modal" style="max-width: 450px;">
-            <div class="modal-title">🌟 冒险完成 🌟</div>
+            <div class="modal-title">🌟 远古宫殿挑战完成 🌟</div>
             
-            <div class="rank-display" id="v-rank">传奇守护者</div>
-            
+            <!-- 导师头像 -->
+            <div style="width: 100px; height: 100px; margin: 0 auto 15px auto;">
+                <img src="JACK2.png" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7)); animation: mentorFloating 4s ease-in-out infinite alternate;" />
+            </div>
+
             <div class="stats-grid">
-                <div class="stat-box">识别要点<span class="stat-value" id="v-points">0</span></div>
-                <div class="stat-box">清除结界<span class="stat-value" id="v-barriers">0</span></div>
-                <div class="stat-box">收集文物<span class="stat-value" id="v-relics">0</span></div>
-                <div class="stat-box">避开灵体<span class="stat-value" id="v-spirits">0</span></div>
+                <div class="stat-box">识别要点<span class="stat-value" id="v-points">0 / 38</span></div>
+                <div class="stat-box">清除结界<span class="stat-value" id="v-barriers">0 / 5</span></div>
+                <div class="stat-box">总计得分<span class="stat-value" id="v-score">0 / 22</span></div>
+                <div class="stat-box">通关时间<span class="stat-value" id="v-time">0 秒</span></div>
             </div>
 
-            <div class="analysis-box" style="border-left-color: #4CAF50;">
-                <strong>💡 优势分析:</strong>
-                <span id="v-strength">正在加载...</span>
+            <div class="teacher-box" style="background: rgba(139, 101, 8, 0.1); border: 1px dashed #8b6508; border-radius: 8px; padding: 15px; text-align: left; line-height: 1.6; color: #e3cfa8; margin-bottom: 25px;">
+                <!-- 修复点：保留 HTML 模板中唯一的导师标签 -->
+                <div class="teacher-title" style="font-weight: bold; color: #ffdf70; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; font-size: 15px;">👨‍🏫 Jack老师：</div>
+                <p class="teacher-msg" id="teacher-msg" style="font-size: 14px; white-space: pre-line;"></p>
             </div>
 
-            <div class="analysis-box" style="border-left-color: #ff9800;">
-                <strong>📈 改进建议:</strong>
-                <span id="v-improvement">正在加载...</span>
-            </div>
-
-            <div class="analysis-box" style="border-left-color: #03A9F4;">
-                <strong>🧠 学习表现:</strong>
-                <span id="v-style">正在加载...</span>
-            </div>
-
+            <!-- 全新的黄金高光跳转按钮，重定向至 assessment.html -->
             <div style="margin-top: 25px; border-top: 1px solid #5c4033; padding-top: 20px;">
-                <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">继续你的学习之旅</div>
-                <!-- Preserving visual layout of whatsapp-btn, modifying href redirect only -->
-                <a href="completion.html" class="action-btn whatsapp-btn">
-                    💬 联系学习顾问
+                <a href="assessment.html" class="action-btn" style="background: linear-gradient(to bottom, #d4af37, #8b6508); border-color: #ffdf70; color: #fff; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 30px; padding: 14px; text-decoration: none;">
+                    🏛️ 开启历史能力评估
                 </a>
             </div>
         </div>
@@ -852,7 +846,7 @@
                 feedbackHTML += `<strong style="color: #d4af37; font-size: 1.2rem;">${matchedCount} / ${data.keys.length} 个要点已识别</strong><br><br>`;
                 feedbackHTML += `<span style="color: #4CAF50; font-style: italic;">回答有效，魔法封印正在消散... ✨</span></div>`;
 
-                // 变动：追加“🔍 继续探索”黄金交互键，取消原本的自动超时关闭行为
+                // 追加“🔍 继续探索”黄金交互键，取消原本的自动超时关闭行为
                 feedbackHTML += `
                     <button class="action-btn" id="btn-quiz-continue" style="margin-top: 15px; background: linear-gradient(to bottom, #d4af37, #8b6508); border: 2px solid #ffdf70; color: #fff; font-weight: bold; box-shadow: 0 4px 10px rgba(212,175,55,0.3);">
                         🔍 继续探索
@@ -900,58 +894,54 @@
             }
         }
 
-        // --- CHINESE SYSTEM REPORT IMPLEMENTATION ---
+        // --- 变动：通关结算流程，装填数据、生成动态 Jack 老师评语并显化模态总结层 ---
         function triggerVictory() {
+            // 立即变更为 'VICTORY' 状态并禁绝玩家移动
             gameState = 'VICTORY';
             player.isMoving = false;
 
-            // Compute elapsed time and save final metrics to Game Session
+            // 获取第二关实际所耗时间并加载当前会话
             const elapsedSeconds = Math.round((Date.now() - level2StartTime) / 1000);
             let session = loadGameSession();
             
-            // Calculate capped score strictly out of 22 (6+4+4+4+4)
+            // 统计第二关结界答对关键词要点的累计得分 (满分：22 分)
             const level2TotalScore = Object.values(barrierScores).reduce((a, b) => a + b, 0);
             session.level2Score = level2TotalScore;
             session.level2Time = elapsedSeconds;
             session.totalTime = session.level1Time + session.transitTime + elapsedSeconds;
             session.completedStatus = true;
+            
+            // 将会话数据安全地写入本地 localStorage
             saveGameSession(session);
 
-            const ratio = gameStats.pointsIdentified / gameStats.totalPossiblePoints;
-            let rank, strength, improvement, style;
+            console.log("Level 2 Completion: Final results saved.");
 
-            if (ratio >= 0.75) {
-                rank = "🏆 传奇守护者";
-                strength = "你对历史概念有深入的理解，并具备极佳的关键词识别能力。";
-                improvement = "你可以通过探索更深层的历史背景并将不同的时代联系起来以获得提升。";
-                style = "卓越的关键词识别能力";
-            } else if (ratio >= 0.5) {
-                rank = "🏅 远古学者";
-                strength = "对核心历史事实 and 区域事件有很好的记忆力。";
-                improvement = "你可以通过提供更详细的解释 and 更有力的支持论点来改进。";
-                style = "扎的历史记忆力";
-            } else if (ratio >= 0.25) {
-                rank = "🧭 知识追寻者";
-                strength = "很好地掌握了宏观历史主题 and 基本叙事。";
-                improvement = "请专注于记忆特定关键词、准确的专业术语 and 地理位置。";
-                style = "良好的概念认力";
+            // 修复点：移除了原本重复拼写的 "👨‍🏫 Jack老师：\n\n" 前缀，仅保留纯评语内容
+            let commentText = "";
+            if (level2TotalScore >= 17) {
+                commentText = "恭喜你完成远古宫殿挑战！你展现出了极其卓越的历史分析能力，对要点的把握精准无误！\n\n在进入最终学习报告之前，请先完成一个简单的历史能力评估。这将帮助我们更了解你的学习特点与优势。";
+            } else if (level2TotalScore >= 11) {
+                commentText = "恭喜你完成远古宫殿挑战！你对核心事实的掌握相当扎实，表现很不错！\n\n在进入最终学习报告之前，请先完成一个简单的历史能力评估。这将帮助我们更了解你的学习特点与优势。";
             } else {
-                rank = "🚶 初级探险家";
-                strength = "展现了探索 and 接触新历史概念的意愿。";
-                improvement = "请复习核心材料，并练习从文本中提取核心关键词。";
-                style = "需加强答题结构化";
+                commentText = "恭喜你完成远古宫殿挑战！虽然遇到了一些困难，但你依然选择坚守并完成了探索，这非常值得赞赏！\n\n在进入最终学习报告之前，请先完成一个简单的历史能力评估。这将帮助我们更了解你的学习特点与优势。";
             }
 
-            document.getElementById('v-rank').innerText = rank;
+            // 装填动态数据与评语
             document.getElementById('v-points').innerText = `${gameStats.pointsIdentified} / ${gameStats.totalPossiblePoints}`;
             document.getElementById('v-barriers').innerText = `${gameStats.barriersCleared} / ${TOTAL_BARRIERS}`;
-            document.getElementById('v-relics').innerText = Math.floor(gameStats.pointsIdentified * 1.5); 
-            document.getElementById('v-spirits').innerText = Math.max(0, 12 - gameStats.timesHit);
+            document.getElementById('v-score').innerText = `${level2TotalScore} / 22`;
+            document.getElementById('teacher-msg').innerText = commentText;
+            
+            // 自动换算时间
+            if (elapsedSeconds >= 60) {
+                const mins = Math.floor(elapsedSeconds / 60);
+                const secs = elapsedSeconds % 60;
+                document.getElementById('v-time').innerText = `${mins} 分 ${secs} 秒`;
+            } else {
+                document.getElementById('v-time').innerText = `${elapsedSeconds} 秒`;
+            }
 
-            document.getElementById('v-strength').innerText = strength;
-            document.getElementById('v-improvement').innerText = improvement;
-            document.getElementById('v-style').innerText = style;
-
+            // 显化胜利总结屏幕，玩家点击按键手动跳转至 assessment.html
             document.getElementById('victory-overlay').style.display = 'flex';
         }
 
@@ -1157,7 +1147,15 @@
             ctx.restore();
         }
 
+        // 改写主绘制方法。当状态切入 'VICTORY' 后，第一行立即对画布进行纯金圣光覆涂，
+        // 彻底杜绝任何迷宫、角色及黑暗灵体可见的绘制。
         function draw() {
+            if (gameState === 'VICTORY') {
+                ctx.fillStyle = 'rgb(212, 175, 55)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 

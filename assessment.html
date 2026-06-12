@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌿 历史成长花园 - 学习能力诊断</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        /* 基础重置 */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans SC', 'Times New Roman', serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030504;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 9:16 纵向比例自适应容器 (契合Level 2与战术面板) */
+        #game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #091316 0%, #020405 100%);
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        /* 植物花园画布粒子 (金粉与深绿古叶) */
+        #gardenCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 环境遮罩 */
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 30%, transparent 20%, rgba(3,5,6,0.92) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 评估答题主体 */
+        #assessment-step {
+            width: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 13px 30px;
+            background: linear-gradient(to bottom, #d4af37, #8b6508);
+            border: 2px solid #ffdf70;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            text-align: center;
+            outline: none;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* 问答卡片 */
+        .question-card {
+            width: 100%;
+            background: rgba(10, 22, 17, 0.88);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 24px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(0, 255, 102, 0.05);
+            text-align: left;
+            color: #e2f6f7;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 8px;
+            color: #d4c4a8;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.25s;
+            outline: none;
+        }
+
+        .option-btn:hover, .option-btn:active {
+            background: rgba(0, 229, 255, 0.08);
+            border-color: #00e5ff;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .option-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 变动：魔法玻璃学习档案卡片样式 */
+        .archive-card {
+            position: relative;
+            width: 90%;
+            max-width: 380px;
+            height: 60vh;
+            max-height: 470px;
+            background: linear-gradient(135deg, rgba(16, 26, 21, 0.95) 0%, rgba(6, 12, 10, 0.99) 100%);
+            border: 2px solid #ffdf70;
+            border-radius: 16px;
+            box-shadow: 0 0 35px rgba(255, 223, 112, 0.2), inset 0 0 20px rgba(0, 255, 102, 0.05);
+            padding: 22px 18px;
+            color: #e2f6f7;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+            transform-origin: center center;
+            transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10;
+        }
+
+        /* 初始状态：深远、收缩、金球光芒 */
+        .card-init {
+            transform: scale(0.01) rotate(45deg);
+            opacity: 0;
+            filter: blur(20px);
+        }
+
+        /* 物理舒展开来 */
+        .card-unfold {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+            filter: blur(0px);
+        }
+
+        .scroll-content {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .card-unfold .scroll-content {
+            opacity: 1;
+            transition-delay: 0.2s;
+        }
+
+        /* 评估过场动画层 */
+        #analysis-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 8, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @keyframes pulseTransition {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        @keyframes rotateLoader {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 最终总结成果页 */
+        #result-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(10, 16, 13, 0.98) 0%, rgba(2, 4, 3, 1) 100%);
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            perspective: 1000px;
+            padding: 15px;
+        }
+
+        /* 导师漂浮动效 */
+        @keyframes mentorFloating {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- 植物花园画布粒子 -->
+    <canvas id="gardenCanvas"></canvas>
+    
+    <div class="vignette"></div>
+
+    <!-- 变动三：触碰解锁音频合规层 (同时自动启动舒缓环境乐) -->
+    <div id="touch-to-start" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,10,8,0.95); z-index: 300; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center;">
+        <div style="font-size: 14px; color: #00ff66; letter-spacing: 2px; margin-bottom: 4px; text-shadow: 0 0 8px rgba(0,255,102, 0.4);">🌿 历史学习能力诊断</div>
+        <div style="font-size: 1.1rem; color: #ffe066; letter-spacing: 2px; animation: pulseTransition 1.2s infinite alternate;">点击屏幕 · 开启诊断花园</div>
+    </div>
+
+    <!-- 阶段 1：问答模块 -->
+    <div id="assessment-step">
+        <div style="margin-top: 10px; margin-bottom: 20px; text-align: center; z-index: 5;">
+            <h1 style="font-size: 1.45rem; color: #ffdf70; text-shadow: 0 0 10px rgba(255, 223, 112, 0.5); letter-spacing: 2px;">🌿 历史学习能力诊断 🌿</h1>
+            <p style="font-size: 0.85rem; color: #a3c4b0; margin-top: 6px; line-height: 1.45; letter-spacing: 1px;">让Jack老师了解你的学习习惯，<br>为你准备专属学习策略。</p>
+        </div>
+
+        <div style="width: 88%; margin: 0 auto 15px auto; text-align: left; z-index: 5;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #a3c4b0; margin-bottom: 5px;">
+                <span>能力诊断进度</span>
+                <span id="progress-text">问题 1 / 5</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(0, 0, 0, 0.3); border-radius: 3px; overflow: hidden;">
+                <div id="progress-bar" style="width: 20%; height: 100%; background: linear-gradient(90deg, #4caf50, #00ff66); transition: width 0.4s ease;"></div>
+            </div>
+        </div>
+
+        <!-- 问答主体 -->
+        <div class="question-card">
+            <h3 id="question-text" style="font-size: 1.1rem; color: #ffdf70; line-height: 1.5; margin-bottom: 18px; font-weight: bold;">当 Sejarah 考题出现时，我通常：</h3>
+            <div id="options-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+
+        <div style="font-size: 9px; color: #5a7560; letter-spacing: 1px; z-index: 5; margin-top: 15px;">Historical Growth Garden // System Assessment</div>
+    </div>
+
+    <!-- 阶段 2：系统智能分析中 -->
+    <div id="analysis-overlay">
+        <div style="position: relative; width: 100px; height: 100px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center;">
+            <div style="position: absolute; width: 70px; height: 70px; background: radial-gradient(circle, #00ff66 0%, transparent 70%); filter: blur(8px); animation: pulseTransition 1.5s infinite alternate;"></div>
+            <span style="font-size: 3rem; position: relative; z-index: 10; animation: rotateLoader 3s linear infinite;">🌿</span>
+        </div>
+        <h1 style="font-size: 20px; color: #ffdf70; margin-bottom: 12px; letter-spacing: 4px; text-shadow: 0 0 15px rgba(255, 223, 112, 0.5);">✨ 分析中... ✨</h1>
+        <p style="font-size: 14px; color: #a3c4b0; margin-bottom: 8px; letter-spacing: 2px;">正在分析你的历史学习能力...</p>
+        <p style="font-size: 14px; color: #a3c4b0; letter-spacing: 2px;">正在生成专属学习档案...</p>
+    </div>
+
+    <!-- 变动二：阶段 3 黄金充能法阵光球（物理解锁序列） -->
+    <div id="golden-orb" style="position: absolute; width: 80px; height: 80px; background: radial-gradient(circle, #ffd700 0%, rgba(255,223,112,0.4) 60%, transparent 100%); border-radius: 50%; box-shadow: 0 0 40px #ffd700; z-index: 120; display: none; transform: scale(0.1); opacity: 0; transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.2s ease;"></div>
+
+    <!-- 阶段 4：全新高阶学习档案卡片与导师亲授 -->
+    <div id="result-layer">
+        <div class="archive-card card-init" id="archiveCard">
+            <div class="scroll-content" id="scroll-content-inner">
+                <h2 style="font-size: 1.15rem; font-weight: bold; color: #ffdf70; margin-bottom: 12px; border-bottom: 2px dashed rgba(255,223,112,0.25); padding-bottom: 6px; letter-spacing: 1.5px; text-align: center; text-shadow: 0 0 8px rgba(255,223,112,0.3);">📚 历史学习档案</h2>
+                
+                <!-- 动态分类与结语 -->
+                <div style="background: rgba(184, 134, 11, 0.08); border-left: 4px solid #d4af37; padding: 10px; border-radius: 4px; text-align: left; margin-bottom: 12px;">
+                    <div style="font-size: 1.05rem; font-weight: bold; color: #ffdf70; margin-bottom: 3px;" id="result-category">🏆 历史探索大师</div>
+                    <div style="font-size: 0.85rem; color: #cbd5e1; line-height: 1.45;" id="result-message"></div>
+                </div>
+
+                <!-- 固定四象法 -->
+                <div style="background: rgba(184, 134, 11, 0.08); border: 1px dashed rgba(255, 223, 112, 0.4); padding: 10px; border-radius: 6px; text-align: left; margin-bottom: 12px;">
+                    <div style="font-size: 0.9rem; font-weight: bold; color: #ffdf70; margin-bottom: 6px; text-align: center; text-shadow: 0 0 5px rgba(255,223,112,0.3);">🎩 JACK老师终极策略</div>
+                    <div style="font-size: 0.85rem; color: #ffdf70; font-weight: bold; text-align: center; margin-bottom: 8px;">心理学 + 记忆术 + PSE + KBAT</div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
+                        <p style="margin-bottom: 4px; color: #f44336;"><span style="font-weight:bold;">让你从：</span><br>❌ 看不懂题目 | ❌ 记不到重点 | ❌ 不会写答案</p>
+                        <p style="color: #4caf50;"><span style="font-weight:bold;">变成：</span><br>✅ 看得懂题目 | ✅ 抓得到重点 | ✅ 写得出答案</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 变动五：杰克老师悬立区 (Issue 6) -->
+        <div id="result-mentor-box" style="display: none; flex-direction: column; align-items: center; margin-top: 15px; opacity: 0; transition: opacity 0.8s ease; z-index: 160;">
+            <div style="width: 75px; height: 75px; margin-bottom: 8px;">
+                <img src="JACK1.png" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7)); animation: mentorFloating 4s ease-in-out infinite alternate;" />
+            </div>
+            <!-- 变动一：最终按钮文案更新为“🎓 领取我的专属学习报告”，并指向 student_info.html -->
+            <button class="action-btn" id="btn-final-report" style="padding: 11px 40px; font-size: 15px; background: linear-gradient(to bottom, #d4af37, #8b6508); border-color: #ffdf70; color: #fff; font-weight: bold; border-radius: 30px; box-shadow: 0 4px 15px rgba(212,175,55,0.4); cursor: pointer;" onclick="proceedToStudentInfo()">🎓 领取我的专属学习报告</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ==========================================
+       STORAGE FOUNDATION DRIVERS
+       ========================================== */
+    const SESSION_KEY = 'sovereigns_relic_session';
+
+    function loadGameSession() {
+        const session = localStorage.getItem(SESSION_KEY);
+        return session ? JSON.parse(session) : {};
+    }
+
+    function saveGameSession(sessionData) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    }
+
+    // --- ASSESSMENT QUESTIONS DATA ---
+    const assessmentData = [
+        {
+            q: "当 Sejarah 考题出现时，我通常：",
+            options: [
+                { text: "A 很快知道题目要什么", score: 3 },
+                { text: "B 要读两三次才明白", score: 2 },
+                { text: "C 常常看不懂题目", score: 1 }
+            ]
+        },
+        {
+            q: "遇到 KBAT 题时，我会：",
+            options: [
+                { text: "A 尝试分析作答", score: 3 },
+                { text: "B 猜一猜答案", score: 2 },
+                { text: "C 直接放弃", score: 1 }
+            ]
+        },
+        {
+            q: "每一次学了历史后，我：",
+            options: [
+                { text: "A 大部分记得", score: 3 },
+                { text: "B 记得一点点，很快忘记", score: 2 },
+                { text: "C 不想读", score: 1 }
+            ]
+        },
+        {
+            q: "我复习 Sejarah 的时候：",
+            options: [
+                { text: "A 比较容易记住", score: 3 },
+                { text: "B 要重复很多次", score: 2 },
+                { text: "C 怎么背都容易忘", score: 1 }
+            ]
+        },
+        {
+            q: "在家里的我：",
+            options: [
+                { text: "A 会主动复习", score: 3 },
+                { text: "B 偶尔复习", score: 2 },
+                { text: "C 几乎不复习", score: 1 }
+            ]
+        }
+    ];
+
+    let currentQIndex = 0;
+    let totalScore = 0;
+
+    // --- PROCEDURAL AUDIO DRIVE & BGM (Web Audio API) ---
+    let audioCtx = null;
+    let bgmInterval = null;
+    let bgmChords = [
+        [196.00, 293.66, 392.00, 493.88], // G Major (安宁、宽广)
+        [261.63, 329.63, 392.00, 523.25], // C Major (明亮、温暖)
+        [164.81, 329.63, 493.88, 659.25], // E Minor (悠扬、微凉)
+        [220.00, 293.66, 440.00, 587.33]  // D Major (柔和、舒展)
+    ];
+    let chordIndex = 0;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    // 变动三：循环释放Procedural和弦背景乐 (Looped Ambient BGM)
+    function playLoopingBGMPad() {
+        if (!audioCtx || audioCtx.state === 'suspended') return;
+        
+        const playChord = () => {
+            const now = audioCtx.currentTime;
+            const freqs = bgmChords[chordIndex];
+            
+            freqs.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                
+                osc.type = 'sine'; // 纯净无谐波
+                osc.frequency.setValueAtTime(freq, now);
+                
+                g.gain.setValueAtTime(0, now);
+                g.gain.linearRampToValueAtTime(0.015, now + 2.0); // 极缓入
+                g.gain.setValueAtTime(0.015, now + 4.2);
+                g.gain.exponentialRampToValueAtTime(0.0001, now + 6.0); // 极缓出
+                
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 6.1);
+            });
+            
+            // 间歇性落下微弱水晶风铃音
+            if (Math.random() > 0.4) {
+                setTimeout(() => {
+                    playSoftChimeNote();
+                }, 1500 + Math.random() * 2000);
+            }
+
+            chordIndex = (chordIndex + 1) % bgmChords.length;
+        };
+
+        playChord();
+        bgmInterval = setInterval(playChord, 6000);
+    }
+
+    function playSoftChimeNote() {
+        if (!audioCtx || audioCtx.state === 'suspended') return;
+        const now = audioCtx.currentTime;
+        const chimes = [783.99, 880.00, 987.77, 1046.50, 1174.66, 1318.51];
+        const freq = chimes[Math.floor(Math.random() * chimes.length)];
+        
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+        
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(now + 2.6);
+    }
+
+    function playSoftClick() {
+        try {
+            initAudio();
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200 + Math.random() * 200, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.005, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+            osc.connect(g);
+            g.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.06);
+        } catch(e) {}
+    }
+
+    // 变动四：高能黄金法阵爆发音效 (Magical Glissando SFX)
+    function playRevealSFX() {
+        try {
+            initAudio();
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            const now = audioCtx.currentTime;
+            
+            // 快速阶梯上升清脆水滴钟琴
+            const revealNotes = [392.00, 493.88, 587.33, 783.99, 880.00, 987.77, 1046.50, 1174.66, 1318.51, 1567.98];
+            revealNotes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                const noteStart = now + idx * 0.05;
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, noteStart);
+                
+                g.gain.setValueAtTime(0, noteStart);
+                g.gain.linearRampToValueAtTime(0.02, noteStart + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.4);
+                
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                osc.start(noteStart);
+                osc.stop(noteStart + 0.45);
+            });
+
+            // 基底深厚温暖的三角波震荡轰鸣 (Sub Swell)
+            const subOsc = audioCtx.createOscillator();
+            const subG = audioCtx.createGain();
+            subOsc.type = 'triangle';
+            subOsc.frequency.setValueAtTime(110, now + 0.15);
+            subOsc.frequency.exponentialRampToValueAtTime(55, now + 1.15);
+            
+            subG.gain.setValueAtTime(0, now + 0.15);
+            subG.gain.linearRampToValueAtTime(0.12, now + 0.35);
+            subG.gain.exponentialRampToValueAtTime(0.0001, now + 1.45);
+            
+            subOsc.connect(subG);
+            subG.connect(audioCtx.destination);
+            subOsc.start(now + 0.15);
+            subOsc.stop(now + 1.5);
+        } catch(e) {}
+    }
+
+    // --- PRESENTATION TIMELINE SYSTEM ---
+    const touchToStart = document.getElementById('touch-to-start');
+    touchToStart.addEventListener('click', () => {
+        initAudio();
+        playLoopingBGMPad(); // 自动启动 Procedural BGM
+        touchToStart.style.display = 'none';
+    });
+
+    function renderQuestion() {
+        const qData = assessmentData[currentQIndex];
+        document.getElementById('progress-text').innerText = `问题 ${currentQIndex + 1} / 5`;
+        document.getElementById('progress-bar').style.width = `${(currentQIndex + 1) * 20}%`;
+        document.getElementById('question-text').innerText = qData.q;
+
+        const optionsList = document.getElementById('options-list');
+        optionsList.innerHTML = '';
+
+        qData.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(opt.score, btn);
+            optionsList.appendChild(btn);
+        });
+    }
+
+    function selectOption(score, btnElement) {
+        playSoftClick();
+        
+        btnElement.style.borderColor = '#00e5ff';
+        btnElement.style.boxShadow = '0 0 15px #00e5ff';
+        
+        totalScore += score;
+        currentQIndex++;
+
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
+
+        setTimeout(() => {
+            if (currentQIndex < assessmentData.length) {
+                renderQuestion();
+            } else {
+                startAnalysis();
+            }
+        }, 300);
+    }
+
+    function startAnalysis() {
+        document.getElementById('assessment-step').style.display = 'none';
+        
+        const analysisOverlay = document.getElementById('analysis-overlay');
+        analysisOverlay.style.display = 'flex';
+
+        setTimeout(() => {
+            analysisOverlay.style.display = 'none';
+            revealHistoricalArchiveCard(); // 变动二：过渡至全新暗色魔法档案卡片具现化
+        }, 2500);
+    }
+
+    // 变动二：高能黄金光球膨胀与魔法档案卡片具现化 (The Orb & Archive Card Materialization)
+    function revealHistoricalArchiveCard() {
+        const resultLayer = document.getElementById('result-layer');
+        resultLayer.style.display = 'flex';
+
+        // 依据总积分（5-15）定级
+        let category = "";
+        let message = "";
+
+        if (totalScore >= 13) {
+            category = "🏆 历史探索大师";
+            message = "你已经拥有良好的历史理解能力。继续加强KBAT分析与答题技巧，Sejarah有机会成为你的优势科目！";
+        } else if (totalScore >= 9) {
+            category = "🌱 成长中的历史学家";
+            message = "你的基础已经建立。只要加强关键词记忆和答题训练，进步会非常明显。";
+        } else {
+            category = "🚀 潜力探险家";
+            message = "别担心。你缺少的不是能力，而是正确的方法。跟着Jack老师的策略，你一样可以掌握Sejarah。";
+        }
+
+        document.getElementById('result-category').innerText = category;
+        document.getElementById('result-message').innerText = message;
+
+        // 保存存档 (保存至 existing structures 决不冲突原本关卡得分)
+        let session = loadGameSession();
+        session.assessmentScore = totalScore;
+        session.assessmentCategory = category;
+        saveGameSession(session);
+
+        // 细分流 1: 召唤黄金光球
+        const orb = document.getElementById('golden-orb');
+        orb.style.display = 'block';
+        
+        setTimeout(() => {
+            orb.style.transform = 'scale(2.5)';
+            orb.style.opacity = '1';
+        }, 50);
+
+        // 细分流 2: 达到膨胀顶点，光球炸裂，播放魔法音效
+        setTimeout(() => {
+            playRevealSFX();
+            orb.style.transform = 'scale(4.0)';
+            orb.style.opacity = '0';
+            
+            // 细分流 3: 暗金高阶学习档案卡片迅速凝聚具现， জ্যাক老师亲授浮现
+            const card = document.getElementById('archiveCard');
+            card.className = "archive-card card-unfold";
+            
+            const mentorBox = document.getElementById('result-mentor-box');
+            mentorBox.style.display = 'flex';
+            setTimeout(() => { mentorBox.style.opacity = '1'; }, 150);
+            
+            // 隐藏多余光球
+            setTimeout(() => { orb.style.display = 'none'; }, 500);
+        }, 1250);
+    }
+
+    // 变动一：最终按钮，指向 student_info.html，彻底废除旧版中间商 completion.html
+    function proceedToStudentInfo() {
+        playSoftClick();
+        setTimeout(() => {
+            window.location.href = "student_info.html";
+        }, 200);
+    }
+
+
+    /* ==========================================
+       🌿 历史成长花园：CANVAS 渲染动效 (Issue 5 统一为暗金古森环境)
+       ========================================== */
+    const canvas = document.getElementById('gardenCanvas');
+    const ctx = canvas.getContext('2d');
+    let gameParticles = [];
+    let polarButterfly = null;
+
+    function resizePCanvas() {
+        const container = document.getElementById('game-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+    window.addEventListener('resize', resizePCanvas);
+    resizePCanvas();
+
+    // 暗金古神殿城堡剪影
+    function drawCastle(ctx, w, h) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(8, 20, 16, 0.45)';
+        ctx.beginPath();
+        const baseH = h - 60;
+        
+        ctx.moveTo(w * 0.1, h);
+        ctx.lineTo(w * 0.1, baseH);
+        ctx.lineTo(w * 0.14, baseH);
+        ctx.lineTo(w * 0.14, baseH - 35);
+        ctx.lineTo(w * 0.17, baseH - 35);
+        ctx.lineTo(w * 0.19, baseH - 70); 
+        ctx.lineTo(w * 0.21, baseH - 35);
+        ctx.lineTo(w * 0.24, baseH - 35);
+        ctx.lineTo(w * 0.24, h);
+        
+        ctx.moveTo(w * 0.72, h);
+        ctx.lineTo(w * 0.72, baseH - 15);
+        ctx.lineTo(w * 0.77, baseH - 15);
+        ctx.lineTo(w * 0.8, baseH - 85); 
+        ctx.lineTo(w * 0.83, baseH - 15);
+        ctx.lineTo(w * 0.88, baseH - 15);
+        ctx.lineTo(w * 0.88, h);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // 统一为 Level 2 暗金荧光微芒
+    function drawWarmSunlight(ctx, w, h, time) {
+        ctx.save();
+        const pulse = (Math.sin(time / 1200) + 1) / 2;
+        const gradient = ctx.createRadialGradient(w * 0.85, h * 0.08, 10, w * 0.85, h * 0.08, 280 + pulse * 35);
+        gradient.addColorStop(0, 'rgba(255, 223, 112, 0.12)'); // 纯正金光
+        gradient.addColorStop(0.5, 'rgba(0, 229, 255, 0.03)'); // 湛蓝微光
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+    }
+
+    class GardenParticle {
+        constructor() {
+            this.reset();
+            this.y = Math.random() * canvas.height;
+        }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = -10;
+            this.size = Math.random() * 3.5 + 2.5;
+            this.speedY = Math.random() * 0.5 + 0.25;
+            this.speedX = Math.random() * 0.2 - 0.05;
+            this.angle = Math.random() * Math.PI * 2;
+            this.rotSpeed = Math.random() * 0.015 - 0.0075;
+            this.type = Math.random() > 0.4 ? 'leaf' : 'pollen';
+            this.color = this.type === 'leaf' ? '#3d6345' : '#ffd700'; // 深绿落叶和黄金时空微粉，杜绝明粉
+        }
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+            this.angle += this.rotSpeed;
+            if (this.y > canvas.height + 10 || this.x > canvas.width + 10 || this.x < -10) {
+                this.reset();
+            }
+        }
+        draw(ctx) {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle);
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            if (this.type === 'leaf') {
+                ctx.moveTo(0, -this.size);
+                ctx.quadraticCurveTo(this.size / 2, 0, 0, this.size);
+                ctx.quadraticCurveTo(-this.size / 2, 0, 0, -this.size);
+                ctx.fill();
+            } else {
+                // 金粉
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = '#ffd700';
+                ctx.arc(0, 0, this.size / 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+
+    class AuroraButterfly {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.targetX = Math.random() * canvas.width;
+            this.targetY = Math.random() * canvas.height;
+            this.angle = 0;
+            this.speed = 0.9;
+            this.wingFlap = 0;
+        }
+        update() {
+            this.wingFlap += 0.25;
+            const dx = this.targetX - this.x;
+            const dy = this.targetY - this.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 15) {
+                this.targetX = Math.random() * canvas.width;
+                this.targetY = Math.random() * canvas.height;
+            } else {
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+                this.angle = Math.atan2(dy, dx);
+            }
+        }
+        draw(ctx) {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle + Math.PI / 2);
+            ctx.fillStyle = '#ffdf70';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffdf70';
+            
+            const flapWidth = Math.abs(Math.sin(this.wingFlap)) * 7 + 1.5;
+            
+            // 翼展
+            ctx.beginPath();
+            ctx.ellipse(-4, -2, flapWidth, 9, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.ellipse(4, -2, flapWidth, 9, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 身体
+            ctx.fillStyle = '#1c1b12';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 1.5, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    for (let i = 0; i < 22; i++) {
+        gameParticles.push(new GardenParticle());
+    }
+    polarButterfly = new AuroraButterfly();
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 渲染远景古建筑
+        drawCastle(ctx, canvas.width, canvas.height);
+        
+        // 环境微调暖芒
+        drawWarmSunlight(ctx, canvas.width, canvas.height, Date.now());
+        
+        // 花叶舞动
+        gameParticles.forEach(p => {
+            p.update();
+            p.draw(ctx);
+        });
+        
+        // 悠扬彩蝶
+        polarButterfly.update();
+        polarButterfly.draw(ctx);
+        
+        requestAnimationFrame(loop);
+    }
+
+    // 运行评估主场景
+    renderQuestion();
+    requestAnimationFrame(loop);
+</script>
+</body>
+</html>

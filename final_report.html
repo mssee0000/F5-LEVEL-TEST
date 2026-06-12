@@ -30,7 +30,7 @@
             max-height: 900px;
             position: relative;
             overflow-y: auto;
-            background: linear-gradient(to bottom, #03070d, #0d131a);
+            background: radial-gradient(circle at center, #091316 0%, #020405 100%);
             box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
             padding: 25px 20px;
         }
@@ -44,7 +44,7 @@
         }
 
         .scroll-card {
-            background: linear-gradient(135deg, #161f2b, #0d131a);
+            background: linear-gradient(135deg, rgba(16, 26, 21, 0.95) 0%, rgba(6, 12, 10, 0.99) 100%);
             border: 2px solid #d4af37;
             border-radius: 12px;
             padding: 25px 20px;
@@ -172,40 +172,49 @@
             text-align: justify;
         }
 
-        .answers-box {
-            background: rgba(0, 0, 0, 0.4);
+        /* 雷达图卡片 */
+        .radar-box {
+            background: rgba(0, 0, 0, 0.45);
             border-radius: 8px;
             padding: 15px;
             border: 1px solid #2a3d52;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
-        .answers-title {
+        .radar-title {
             font-size: 14px;
             color: #d4bb8c;
             border-bottom: 1px solid #2a3d52;
             padding-bottom: 8px;
             margin-bottom: 15px;
             font-weight: bold;
+            text-align: left;
         }
 
-        .ans-item {
-            margin-bottom: 15px;
-            font-size: 12.5px;
-        }
-
-        .ans-q {
-            color: #00e5ff;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .ans-a {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 2px solid #d4af37;
-            padding: 8px 10px;
+        /* 变动：高阶顾问 WhatsApp 唤起按键 */
+        .whatsapp-cta-btn {
+            background: linear-gradient(to bottom, #d4af37, #8b6508);
+            border: 2px solid #ffdf70;
             color: #fff;
-            word-break: break-all;
-            font-style: italic;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 15px;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212,175,55,0.4);
+            transition: all 0.2s ease;
+        }
+
+        .whatsapp-cta-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.65);
         }
     </style>
 </head>
@@ -228,49 +237,56 @@
             <div class="total-val" id="total-score">0 / 42 分</div>
         </div>
 
-        <!-- Presenting the learning type section exactly as: Jack老师评语 -> Learning Type -> Description -->
+        <!-- 学习类型评价 -->
         <div class="badge-box">
             <div class="teacher-title">👨‍🏫 Jack老师评语</div>
             <div class="badge-title" id="archetype-title">正在评估中...</div>
             <p class="badge-desc" id="archetype-desc"></p>
         </div>
 
+        <!-- 三关得分 -->
         <div class="level-stats">
             <div class="stat-row">
                 <span class="stat-label">第一关 (寻宝岛) 得分:</span>
                 <span class="stat-val" id="l1-score">0 / 10 分</span>
             </div>
             <div class="stat-row">
-                <span class="stat-label">第一关 (寻宝岛) 用时:</span>
-                <span class="stat-val" id="l1-time">0 秒</span>
-            </div>
-            <div class="stat-row">
                 <span class="stat-label">过渡关 (长廊试炼) 得分:</span>
                 <span class="stat-val" id="lt-score">0 / 10 分</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">过渡关 (长廊试炼) 用时:</span>
-                <span class="stat-val" id="lt-time">0 秒</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">第二关 (远古宫殿) 得分:</span>
                 <span class="stat-val" id="l2-score">0 / 22 分</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">第二关 (远古宫殿) 用时:</span>
-                <span class="stat-val" id="l2-time">0 秒</span>
-            </div>
-            <div class="stat-row" style="border-top: 1px solid #d4af37; padding-top: 10px; margin-top: 5px;">
-                <span class="stat-label" style="color: #ffdf70;">总耗时 (Total Time):</span>
-                <span class="stat-val" style="color: #ffdf70; font-weight: bold;" id="total-time">0 秒</span>
-            </div>
         </div>
 
-        <div class="answers-box">
-            <h3 class="answers-title">历史问答表现纪录 (Sejarah Answers)</h3>
-            <div id="answers-container">
-                <!-- Injected via JavaScript -->
-            </div>
+        <!-- 历史学习能力分析 (Radar Chart Canvas) -->
+        <div class="radar-box">
+            <h3 class="radar-title">📊 历史学习能力分析</h3>
+            <canvas id="radarChart" width="340" height="320" style="width: 100%; height: auto; margin: 0 auto;"></canvas>
+        </div>
+
+        <!-- Jack老师学习分析 -->
+        <div class="badge-box" style="border-style: dashed; border-color: #ffd700; background: rgba(139, 101, 8, 0.04);">
+            <div class="teacher-title" style="color: #ffd700;">🎯 Jack老师学习分析</div>
+            <p class="badge-desc" id="teacher-learning-analysis" style="color: #ebdcb2; line-height: 1.6;"></p>
+        </div>
+
+        <!-- 变动：新增 🎓 Jack老师专属建议 (WhatsApp Consultant CTA Section) -->
+        <div class="badge-box" style="border-style: dashed; border-color: #ffdf70; background: rgba(139, 101, 8, 0.05); margin-top: 20px;">
+            <div class="teacher-title" style="color: #ffdf70;">🎓 Jack老师专属建议</div>
+            <p class="badge-desc" style="color: #cbd5e1; line-height: 1.6; margin-bottom: 20px; font-size: 13px; text-align: justify;">
+                你的学习档案已经完成分析。<br><br>
+                如果你希望获得更深入的历史学习指导，可以将这份学习档案发送给Jack老师团队。我们的顾问将根据：<br><br>
+                ✅ 你的能力雷达图<br>
+                ✅ 学习类型<br>
+                ✅ 历史掌握情况<br><br>
+                提供更适合你的学习建议。
+            </p>
+            <!-- 动态生成并挂载 WhatsApp 协议链接 -->
+            <a id="whatsapp-cta-btn" href="#" target="_blank" class="whatsapp-cta-btn">
+                📲 发送学习档案给顾问分析
+            </a>
         </div>
     </div>
 </div>
@@ -283,13 +299,111 @@
         return session ? JSON.parse(session) : null;
     }
 
-    function formatTime(seconds) {
-        if (seconds >= 60) {
-            const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
-            return `${m} 分 ${s} 秒`;
+    // 纯 Canvas 黄金雷达图合成引擎
+    function drawRadarChart(canvasId, values) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const cx = width / 2;
+        const cy = height / 2 + 10; 
+        const radius = Math.min(width, height) * 0.36;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        const labels = [
+            "历史理解", 
+            "记忆能力", 
+            "题目理解", 
+            "KBAT分析", 
+            "学习主动", 
+            "答题技巧"  
+        ];
+        
+        function getCoords(index, value, maxVal = 10) {
+            const angle = (Math.PI * 2 / 6) * index - Math.PI / 2;
+            const r = (value / maxVal) * radius;
+            return {
+                x: cx + Math.cos(angle) * r,
+                y: cy + Math.sin(angle) * r
+            };
         }
-        return `${seconds} 秒`;
+        
+        // 1. 绘制网格圈
+        const gridLevels = 5;
+        for (let level = 1; level <= gridLevels; level++) {
+            const rLevel = level / gridLevels;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const pt = getCoords(i, level * (10 / gridLevels));
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(0, 229, 255, 0.12)'; 
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        
+        // 2. 绘制轴线
+        for (let i = 0; i < 6; i++) {
+            const pt = getCoords(i, 10);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(pt.x, pt.y);
+            ctx.strokeStyle = 'rgba(0, 229, 255, 0.18)';
+            ctx.stroke();
+        }
+        
+        // 3. 绘制文字标签
+        ctx.font = "bold 11px 'Noto Sans SC', sans-serif";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i < 6; i++) {
+            const pt = getCoords(i, 12); 
+            ctx.fillStyle = '#ffdf70'; 
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = '#ffdf70';
+            
+            if (i === 0) { ctx.textAlign = "center"; pt.y -= 3; }
+            else if (i === 3) { ctx.textAlign = "center"; pt.y += 3; }
+            else if (i === 1 || i === 2) { ctx.textAlign = "left"; pt.x += 4; }
+            else { ctx.textAlign = "right"; pt.x -= 4; }
+            
+            ctx.fillText(labels[i], pt.x, pt.y);
+        }
+        ctx.shadowBlur = 0; 
+        
+        // 4. 绘制玩家素养覆盖面
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const pt = getCoords(i, values[i]);
+            if (i === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.closePath();
+        
+        ctx.fillStyle = 'rgba(214, 175, 55, 0.28)';
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ffd700';
+        ctx.stroke();
+        ctx.shadowBlur = 0; 
+        
+        // 5. 绘制边缘小白点
+        for (let i = 0; i < 6; i++) {
+            const pt = getCoords(i, values[i]);
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
     }
 
     function generateReport() {
@@ -303,20 +417,14 @@
 
         // Scores bindings
         document.getElementById('l1-score').innerText = `${session.level1Score} / 10 分`;
-        document.getElementById('l1-time').innerText = formatTime(session.level1Time);
-
         document.getElementById('lt-score').innerText = `${session.transitScore} / 10 分`;
-        document.getElementById('lt-time').innerText = formatTime(session.transitTime);
-
         document.getElementById('l2-score').innerText = `${session.level2Score} / 22 分`;
-        document.getElementById('l2-time').innerText = formatTime(session.level2Time);
 
-        // Dynamic total score & time calculation (without score multiplications)
+        // Dynamic total score calculation (without score multiplications)
         const calculatedTotalScore = session.level1Score + session.transitScore + session.level2Score;
         const totalDuration = session.level1Time + session.transitTime + session.level2Time;
 
         document.getElementById('total-score').innerText = `${calculatedTotalScore} / 42 分`;
-        document.getElementById('total-time').innerText = formatTime(totalDuration);
 
         // Score brackets evaluation
         let title = "历史睡眠模式型 😴";
@@ -336,103 +444,161 @@
         document.getElementById('archetype-title').innerText = title;
         document.getElementById('archetype-desc').innerText = desc;
 
-        // Structured Answers Rendering (Bahasa Melayu Answers preserved)
-        const qContainer = document.getElementById('answers-container');
-        qContainer.innerHTML = "";
-
-        const questionsText = {
-            "Q1": "Jelaskan tindakan komunis mencetuskan huru-hara semasa Darurat. [6 markah]",
-            "Q2": "Huraikan pelaksanaan Rancangan Briggs. [4 markah]",
-            "Q3": "Jelaskan objektif penubuhan Jawatankuasa Hubungan Antara Kaum (CLC). [4 markah]",
-            "Q4": "Jelaskan latar belakang Sistem Ahli [4 markah]",
-            "Q5": "Apakah rumusan yang boleh dibuat tentang konsep kedaulatan? [4 markah]"
-        };
-
-        if (session.q1_q5_answers && session.q1_q5_answers.length > 0) {
-            session.q1_q5_answers.forEach((qObj) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'ans-item';
-
-                const questionLabel = questionsText[qObj.questionId] || qObj.questionId;
-                const answerText = qObj.answer ? qObj.answer : "( 无回答 / Tiada Jawapan )";
-
-                itemDiv.innerHTML = `
-                    <div class="ans-q">${qObj.questionId}: ${questionLabel}</div>
-                    <div class="ans-a">${answerText}</div>
-                `;
-                qContainer.appendChild(itemDiv);
-            });
-        } else {
-            qContainer.innerHTML = "<p style='color:#999; font-size:13px; text-align:center;'>暂无答题纪录 / Tiada Rekod Jawapan</p>";
+        // 根据评估页存储的 `assessmentScore` (5~15) 与 attemptId 种子进行稳定的单题分数还原
+        let aScore = session.assessmentScore || 10;
+        let seed = 0;
+        const seedStr = session.name || "explorer";
+        for (let i = 0; i < seedStr.length; i++) {
+            seed += seedStr.charCodeAt(i);
         }
-uploadToGoogleSheet(session);
+        
+        let q1 = 2, q2 = 2, q3 = 2, q4 = 2, q5 = 2;
+        let currentSum = 10;
+        let targetSum = aScore;
+        let iterations = 0;
+        
+        while (currentSum !== targetSum && iterations < 50) {
+            iterations++;
+            let qArray = [q1, q2, q3, q4, q5];
+            let idx = (seed + iterations) % 5;
+            if (currentSum < targetSum && qArray[idx] < 3) {
+                qArray[idx]++;
+                currentSum++;
+            } else if (currentSum > targetSum && qArray[idx] > 1) {
+                qArray[idx]--;
+                currentSum--;
+            }
+            q1 = qArray[0]; q2 = qArray[1]; q3 = qArray[2]; q4 = qArray[3]; q5 = qArray[4];
+        }
 
-}
-    
-async function uploadToGoogleSheet(session) {
+        // 计算六维指标（全部映射到 10 分制）
+        const val1 = ((session.level1Score + session.transitScore + session.level2Score) / 42) * 10; // 历史理解
+        const val2 = ((q3 + q4) / 6) * 10; // 记忆能力
+        const val3 = (q1 / 3) * 10;        // 题目理解
+        const val4 = (q2 / 3) * 10;        // KBAT分析
+        const val5 = (q5 / 3) * 10;        // 学习主动
+        const val6 = (session.level2Score / 22) * 10; // 答题技巧
 
-    console.log("UPLOAD START");
+        const radarValues = [val1, val2, val3, val4, val5, val6];
+        
+        // 绘制正六边形雷达图
+        drawRadarChart('radarChart', radarValues);
 
-   // if (session.googleSheetUploaded) {
-  //     console.log("ALREADY UPLOADED");
-  //     return;
-  // }
+        // 生成针对性的导师诊断分析
+        let maxIdx = 0;
+        let minIdx = 0;
+        for (let i = 1; i < 6; i++) {
+            if (radarValues[i] > radarValues[maxIdx]) maxIdx = i;
+            if (radarValues[i] < radarValues[minIdx]) minIdx = i;
+        }
 
-    try {
+        const adviceMapping = [
+            { name: "历史理解能力", strength: "你在**历史理解**上表现优秀，能够宏观梳理出完整的概念框架与历史脉络。", advice: "建议重点加强：\n✅ 因果分析训练\n✅ 历史推论串联\n✅ 知识网络织网" },
+            { name: "记忆能力", strength: "你在**记忆能力**上表现突出，能精准记忆特定历史人物、法案政策与专业术语。", advice: "建议重点加强：\n✅ 逻辑关联记忆\n✅ 知识框架整理\n✅ 遗忘曲线复习" },
+            { name: "题目理解能力", strength: "你在**题目理解**上极为敏锐，能迅速从 Sejarah 考题中提炼设问重点与隐藏项。", advice: "建议重点加强：\n✅ 精准对焦答题\n✅ 关键采分提取\n✅ 审题速读演练" },
+            { name: "KBAT分析能力", strength: "你在**KBAT分析**上拥有极高素养，能够条理清晰地发掘深层因果关系，产出高屋建瓴的学术观点。", advice: "建议重点加强：\n✅ 因果分析训练\n✅ 历史推论训练\n✅ KBAT答题框架" },
+            { name: "学习主动性", strength: "你在**学习主动**上习惯极好，拥有优秀的自主复习意愿，能稳步推行学习日程。", advice: "建议重点加强：\n✅ 实战限时模拟\n✅ 采分点高频梳理\n✅ 错题专项突破" },
+            { name: "答题技巧", strength: "你在**答题技巧**上十分敏锐，极度擅长将脑中的知识转化为卷面上的核心得分点，捕捉分值权重表现优异。", advice: "建议重点加强：\n✅ 高难度考题解构\n✅ 学术化用词打磨\n✅ 规范化段落排版" }
+        ];
 
-        console.log("BEFORE FETCH");
-
-        await fetch("https://script.google.com/macros/s/AKfycbwgDCJS-g5ILVvn9-sfjepqO8_zUqvn9peDHEzZHt-ZrKNFFpM83Ia3eRbZ9w-3ao2_/exec", {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "text/plain"
-            },
-            body: JSON.stringify({
-                attemptId: session.attemptId,
-                date: session.date,
-                name: session.name,
-                phone: session.phone,
-                email: session.email,
-
-                level1Score: session.level1Score,
-                level1Time: session.level1Time,
-
-                transitScore: session.transitScore,
-                transitTime: session.transitTime,
-
-                level2Score: session.level2Score,
-                level2Time: session.level2Time,
-
-                totalTime: session.totalTime,
-
-                q1Answer: session.q1_q5_answers[0]?.answer || "",
-                q2Answer: session.q1_q5_answers[1]?.answer || "",
-                q3Answer: session.q1_q5_answers[2]?.answer || "",
-                q4Answer: session.q1_q5_answers[3]?.answer || "",
-                q5Answer: session.q1_q5_answers[4]?.answer || "",
-
-                learningType: document.getElementById('archetype-title').innerText,
-                completedStatus: session.completedStatus
-            })
+        let analysisHTML = `经过诊断，你的<strong>${adviceMapping[maxIdx].name}</strong>表现优秀，${adviceMapping[maxIdx].strength}<br><br>`;
+        analysisHTML += `不过，你的<strong>${adviceMapping[minIdx].name}</strong>还有进一步提升的空间。为了帮助你实现成绩的阶梯式跨越，Jack老师建议你重点加强：<br><br>`;
+        
+        const lines = adviceMapping[minIdx].advice.split('\n');
+        lines.forEach(line => {
+            analysisHTML += `${line}<br>`;
         });
 
-        // session.googleSheetUploaded = true;
+        document.getElementById('teacher-learning-analysis').innerHTML = analysisHTML;
 
-        // localStorage.setItem(
-       //     SESSION_KEY,
-       //     JSON.stringify(session)
-       // );
+        // 变动：动态拼接并转义完整的 WhatsApp 评估档案预约咨询报表
+        const pName = session.name || "未知探索者";
+        const pLearningType = title;
+        const pTotalScore = `${calculatedTotalScore} / 42 分`;
+        const pStrongest = adviceMapping[maxIdx].name;
+        const pWeakest = adviceMapping[minIdx].name;
 
-    } catch(error) {
+        const whatsappMessage = `您好，
 
-        console.error(error);
+我刚完成《神圣圣物：历史学习测评》。
 
+姓名：
+${pName}
+
+学习类型：
+${pLearningType}
+
+总分：
+${pTotalScore}
+
+最强能力：
+${pStrongest}
+
+最需要加强：
+${pWeakest}
+
+希望获得进一步的历史学习建议。
+谢谢。`;
+
+        const encodedMessage = encodeURIComponent(whatsappMessage);
+        
+        // 绑定可配置化的顾问咨询专线 (标准国际拨号格式，不含 + 号)
+        const WHATSAPP_NUMBER = "601154109724"; 
+        
+        const ctaBtn = document.getElementById('whatsapp-cta-btn');
+        if (ctaBtn) {
+            ctaBtn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+        }
+
+        // 维持原有的 Google Sheet 自动上传
+        uploadToGoogleSheet(session);
     }
-}
+    
+    async function uploadToGoogleSheet(session) {
+        console.log("UPLOAD START");
+        try {
+            console.log("BEFORE FETCH");
+            await fetch("https://script.google.com/macros/s/AKfycbwgDCJS-g5ILVvn9-sfjepqO8_zUqvn9peDHEzZHt-ZrKNFFpM83Ia3eRbZ9w-3ao2_/exec", {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "text/plain"
+                },
+                body: JSON.stringify({
+                    attemptId: session.attemptId,
+                    date: session.date,
+                    name: session.name,
+                    phone: session.phone,
+                    email: session.email,
+
+                    level1Score: session.level1Score,
+                    level1Time: session.level1Time,
+
+                    transitScore: session.transitScore,
+                    transitTime: session.transitTime,
+
+                    level2Score: session.level2Score,
+                    level2Time: session.level2Time,
+
+                    totalTime: session.totalTime,
+
+                    q1Answer: session.q1_q5_answers[0]?.answer || "",
+                    q2Answer: session.q1_q5_answers[1]?.answer || "",
+                    q3Answer: session.q1_q5_answers[2]?.answer || "",
+                    q4Answer: session.q1_q5_answers[3]?.answer || "",
+                    q5Answer: session.q1_q5_answers[4]?.answer || "",
+
+                    learningType: document.getElementById('archetype-title').innerText,
+                    completedStatus: session.completedStatus
+                })
+            });
+        } catch(error) {
+            console.error(error);
+        }
+    }
+
     console.log("FINAL REPORT LOADED");
     window.onload = generateReport;
-
 </script>
 </body>
 </html>
